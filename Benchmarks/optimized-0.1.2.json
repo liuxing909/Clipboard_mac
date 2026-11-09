@@ -1,0 +1,31 @@
+{
+  "characters_per_text" : 256,
+  "cpu_metric" : "process CPU seconds \/ elapsed seconds * 100; 100 percent equals one CPU core",
+  "image_cache" : {
+    "capture_and_cache_ms" : 166.15141666261479,
+    "images_added" : 20,
+    "phys_footprint_after_mib" : 10.250732421875,
+    "phys_footprint_before_mib" : 7.656890869140625,
+    "source_image_pixels" : "600x600",
+    "thumbnails_loaded" : 20
+  },
+  "initial_text_entries" : 200,
+  "memory_metric" : "process task_vm_info.phys_footprint; includes AppKit runtime, excludes a real application window",
+  "monitoring_idle" : {
+    "elapsed_seconds" : 10.0003138333268,
+    "phys_footprint_mib" : 7.6099929809570312,
+    "process_cpu_percent" : 0.029139085518385465,
+    "process_cpu_seconds" : 0.0029140000000000277
+  },
+  "navigation_1000_ms" : 17.119749987614341,
+  "navigation_entries_observed" : 200000,
+  "paused_idle" : {
+    "elapsed_seconds" : 5.0010460416669957,
+    "phys_footprint_mib" : 7.656890869140625,
+    "process_cpu_percent" : 0.003859192624742686,
+    "process_cpu_seconds" : 0.00019299999999999873
+  },
+  "scope" : "synthetic model; no application window, general clipboard, or global hotkeys",
+  "search_100_distinct_queries_ms" : 134.27529166801833,
+  "search_matches_observed" : 100
+}

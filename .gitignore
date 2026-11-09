@@ -1,0 +1,32 @@
+# SwiftPM and local build products
+.build/
+.swiftpm/
+dist/
+DerivedData/
+*.app/
+*.dmg
+*.dSYM/
+
+# macOS and editor state
+.DS_Store
+*.xcuserstate
+xcuserdata/
+*.swp
+*.swo
+*.log
+*.tmp
+*.bak
+*.original
+
+# Local configuration and signing credentials
+.env
+.env.*
+!.env.example
+*.p12
+*.p8
+*.mobileprovision
+
+# Accidental local history exports at the repository root
+/history.json
+/images/
+/richtext/

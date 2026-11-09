@@ -1,0 +1,369 @@
+{
+  "configured_limits" : {
+    "image_pixel_limit" : 16000000,
+    "max_outstanding_jobs" : 2,
+    "prepared_output_limit_mib" : 25,
+    "retained_input_budget_mib" : 50,
+    "rich_text_limit_mib" : 4,
+    "snapshot_limit_mib" : 25,
+    "worker_concurrency" : 1
+  },
+  "limitations" : [
+    "Not a Microsoft Word\/WPS compatibility test and not a full GUI memory benchmark.",
+    "Sampled peak is a lower bound: brief allocations or allocations during a blocked main thread can be missed.",
+    "Baselines include fixtures and warmed AppKit\/runtime state; scenarios run sequentially in one process.",
+    "Timer gaps include the 5 ms timer interval, run-loop scheduling and sampling overhead; they are not frame render times.",
+    "Completion times include up to approximately 5 ms of run-loop polling granularity; fixture generation and initial history seeding are excluded."
+  ],
+  "memory_metric" : "process task_vm_info.phys_footprint; 5 ms main-run-loop samples plus boundary samples",
+  "repeats_per_scenario" : 3,
+  "scenarios" : [
+    {
+      "description" : "30 Chinese\/English paragraphs, 19 pt bold font, paragraph spacing, RTF + HTML + plain text",
+      "name" : "rtf_html",
+      "runs" : [
+        {
+          "capture_main_call_ms" : 0.21104166808072478,
+          "capture_until_persisted_ms" : 5.5696666677249596,
+          "copy_main_call_ms" : 0.080375000834465027,
+          "copy_until_commit_ms" : 5.6576666684122756,
+          "history_entries" : 200,
+          "iteration" : 1,
+          "restored_representations" : [
+            "Apple HTML pasteboard type",
+            "CorePasteboardFlavorType 0x75743136",
+            "NSStringPboardType",
+            "NeXT Rich Text Format v1.0 pasteboard type",
+            "app.clipboarddeck.internal",
+            "public.html",
+            "public.rtf",
+            "public.utf16-external-plain-text",
+            "public.utf8-plain-text"
+          ],
+          "sampling" : {
+            "baseline_phys_footprint_mib" : 6.0474700927734375,
+            "end_phys_footprint_mib" : 6.2662200927734375,
+            "max_main_timer_gap_ms" : 5.5660416692262515,
+            "sampled_peak_phys_footprint_mib" : 6.2662200927734375,
+            "timer_samples" : 2
+          },
+          "source_board_types" : [
+            "public.html",
+            "Apple HTML pasteboard type",
+            "public.rtf",
+            "NeXT Rich Text Format v1.0 pasteboard type",
+            "public.utf16-external-plain-text",
+            "CorePasteboardFlavorType 0x75743136",
+            "public.utf8-plain-text",
+            "NSStringPboardType"
+          ],
+          "source_item_types" : [
+            "public.html",
+            "public.rtf",
+            "public.utf16-external-plain-text",
+            "public.utf8-plain-text"
+          ],
+          "stored_payload_bytes" : 10336
+        },
+        {
+          "capture_main_call_ms" : 0.14099999680183828,
+          "capture_until_persisted_ms" : 5.5863750021671876,
+          "copy_main_call_ms" : 0.014375007594935596,
+          "copy_until_commit_ms" : 5.6009166728472337,
+          "history_entries" : 200,
+          "iteration" : 2,
+          "restored_representations" : [
+            "Apple HTML pasteboard type",
+            "CorePasteboardFlavorType 0x75743136",
+            "NSStringPboardType",
+            "NeXT Rich Text Format v1.0 pasteboard type",
+            "app.clipboarddeck.internal",
+            "public.html",
+            "public.rtf",
+            "public.utf16-external-plain-text",
+            "public.utf8-plain-text"
+          ],
+          "sampling" : {
+            "baseline_phys_footprint_mib" : 6.2662200927734375,
+            "end_phys_footprint_mib" : 6.2818450927734375,
+            "max_main_timer_gap_ms" : 5.5821666610427201,
+            "sampled_peak_phys_footprint_mib" : 6.2818450927734375,
+            "timer_samples" : 2
+          },
+          "source_board_types" : [
+            "public.html",
+            "Apple HTML pasteboard type",
+            "public.rtf",
+            "NeXT Rich Text Format v1.0 pasteboard type",
+            "public.utf16-external-plain-text",
+            "CorePasteboardFlavorType 0x75743136",
+            "public.utf8-plain-text",
+            "NSStringPboardType"
+          ],
+          "source_item_types" : [
+            "public.html",
+            "public.rtf",
+            "public.utf16-external-plain-text",
+            "public.utf8-plain-text"
+          ],
+          "stored_payload_bytes" : 10336
+        },
+        {
+          "capture_main_call_ms" : 0.060249993111938238,
+          "capture_until_persisted_ms" : 5.4958749969955534,
+          "copy_main_call_ms" : 0.026583322323858738,
+          "copy_until_commit_ms" : 5.0750833324855193,
+          "history_entries" : 200,
+          "iteration" : 3,
+          "restored_representations" : [
+            "Apple HTML pasteboard type",
+            "CorePasteboardFlavorType 0x75743136",
+            "NSStringPboardType",
+            "NeXT Rich Text Format v1.0 pasteboard type",
+            "app.clipboarddeck.internal",
+            "public.html",
+            "public.rtf",
+            "public.utf16-external-plain-text",
+            "public.utf8-plain-text"
+          ],
+          "sampling" : {
+            "baseline_phys_footprint_mib" : 6.2818450927734375,
+            "end_phys_footprint_mib" : 6.3130950927734375,
+            "max_main_timer_gap_ms" : 5.4864583362359554,
+            "sampled_peak_phys_footprint_mib" : 6.3130950927734375,
+            "timer_samples" : 2
+          },
+          "source_board_types" : [
+            "public.html",
+            "Apple HTML pasteboard type",
+            "public.rtf",
+            "NeXT Rich Text Format v1.0 pasteboard type",
+            "public.utf16-external-plain-text",
+            "CorePasteboardFlavorType 0x75743136",
+            "public.utf8-plain-text",
+            "NSStringPboardType"
+          ],
+          "source_item_types" : [
+            "public.html",
+            "public.rtf",
+            "public.utf16-external-plain-text",
+            "public.utf8-plain-text"
+          ],
+          "stored_payload_bytes" : 10336
+        }
+      ],
+      "source_representation_bytes" : 10336
+    },
+    {
+      "description" : "formatted paragraphs plus one embedded 128 x 96 PNG image",
+      "name" : "rtfd_inline_image",
+      "runs" : [
+        {
+          "capture_main_call_ms" : 0.049791677156463265,
+          "capture_until_persisted_ms" : 5.5081666796468198,
+          "copy_main_call_ms" : 0.028541660867631435,
+          "copy_until_commit_ms" : 5.1109166670357808,
+          "history_entries" : 200,
+          "iteration" : 1,
+          "restored_representations" : [
+            "NSStringPboardType",
+            "NeXT RTFD pasteboard type",
+            "app.clipboarddeck.internal",
+            "com.apple.flat-rtfd",
+            "public.utf8-plain-text"
+          ],
+          "sampling" : {
+            "baseline_phys_footprint_mib" : 6.1568450927734375,
+            "end_phys_footprint_mib" : 6.1880950927734375,
+            "max_main_timer_gap_ms" : 5.4887916630832478,
+            "sampled_peak_phys_footprint_mib" : 6.1880950927734375,
+            "timer_samples" : 2
+          },
+          "source_board_types" : [
+            "public.utf8-plain-text",
+            "NSStringPboardType",
+            "com.apple.flat-rtfd",
+            "NeXT RTFD pasteboard type"
+          ],
+          "source_item_types" : [
+            "public.utf8-plain-text",
+            "com.apple.flat-rtfd"
+          ],
+          "stored_payload_bytes" : 9066
+        },
+        {
+          "capture_main_call_ms" : 0.043874999391846359,
+          "capture_until_persisted_ms" : 5.5142499913927168,
+          "copy_main_call_ms" : 0.024499997380189598,
+          "copy_until_commit_ms" : 5.6353749969275668,
+          "history_entries" : 200,
+          "iteration" : 2,
+          "restored_representations" : [
+            "NSStringPboardType",
+            "NeXT RTFD pasteboard type",
+            "app.clipboarddeck.internal",
+            "com.apple.flat-rtfd",
+            "public.utf8-plain-text"
+          ],
+          "sampling" : {
+            "baseline_phys_footprint_mib" : 6.1880950927734375,
+            "end_phys_footprint_mib" : 6.1880950927734375,
+            "max_main_timer_gap_ms" : 5.4972916695987806,
+            "sampled_peak_phys_footprint_mib" : 6.1880950927734375,
+            "timer_samples" : 2
+          },
+          "source_board_types" : [
+            "public.utf8-plain-text",
+            "NSStringPboardType",
+            "com.apple.flat-rtfd",
+            "NeXT RTFD pasteboard type"
+          ],
+          "source_item_types" : [
+            "public.utf8-plain-text",
+            "com.apple.flat-rtfd"
+          ],
+          "stored_payload_bytes" : 9066
+        },
+        {
+          "capture_main_call_ms" : 0.045708336983807385,
+          "capture_until_persisted_ms" : 5.553875002078712,
+          "copy_main_call_ms" : 0.014208329957909882,
+          "copy_until_commit_ms" : 5.0530833250377327,
+          "history_entries" : 200,
+          "iteration" : 3,
+          "restored_representations" : [
+            "NSStringPboardType",
+            "NeXT RTFD pasteboard type",
+            "app.clipboarddeck.internal",
+            "com.apple.flat-rtfd",
+            "public.utf8-plain-text"
+          ],
+          "sampling" : {
+            "baseline_phys_footprint_mib" : 6.1880950927734375,
+            "end_phys_footprint_mib" : 6.1880950927734375,
+            "max_main_timer_gap_ms" : 5.520749997231178,
+            "sampled_peak_phys_footprint_mib" : 6.1880950927734375,
+            "timer_samples" : 2
+          },
+          "source_board_types" : [
+            "public.utf8-plain-text",
+            "NSStringPboardType",
+            "com.apple.flat-rtfd",
+            "NeXT RTFD pasteboard type"
+          ],
+          "source_item_types" : [
+            "public.utf8-plain-text",
+            "com.apple.flat-rtfd"
+          ],
+          "stored_payload_bytes" : 9066
+        }
+      ],
+      "source_representation_bytes" : 9066
+    },
+    {
+      "description" : "2000 x 1500 static JPEG; capture normalizes to PNG and copy prepares supported image representations",
+      "name" : "jpeg_3mp",
+      "runs" : [
+        {
+          "capture_main_call_ms" : 0.14495833602268249,
+          "capture_until_persisted_ms" : 77.385625001625158,
+          "copy_main_call_ms" : 0.01395832805428654,
+          "copy_until_commit_ms" : 22.451625001849607,
+          "history_entries" : 200,
+          "iteration" : 1,
+          "restored_representations" : [
+            "Apple PNG pasteboard type",
+            "NeXT TIFF v4.0 pasteboard type",
+            "app.clipboarddeck.internal",
+            "public.png",
+            "public.tiff"
+          ],
+          "sampling" : {
+            "baseline_phys_footprint_mib" : 6.2193450927734375,
+            "end_phys_footprint_mib" : 16.047492980957031,
+            "max_main_timer_gap_ms" : 7.12799999746494,
+            "sampled_peak_phys_footprint_mib" : 23.359992980957031,
+            "timer_samples" : 19
+          },
+          "source_board_types" : [
+            "public.jpeg",
+            "CorePasteboardFlavorType 0x4A504547",
+            "public.tiff",
+            "NeXT TIFF v4.0 pasteboard type"
+          ],
+          "source_item_types" : [
+            "public.jpeg"
+          ],
+          "stored_payload_bytes" : 736898
+        },
+        {
+          "capture_main_call_ms" : 0.11195833212696016,
+          "capture_until_persisted_ms" : 71.613208332564682,
+          "copy_main_call_ms" : 0.014583332813344896,
+          "copy_until_commit_ms" : 22.912083339178935,
+          "history_entries" : 200,
+          "iteration" : 2,
+          "restored_representations" : [
+            "Apple PNG pasteboard type",
+            "NeXT TIFF v4.0 pasteboard type",
+            "app.clipboarddeck.internal",
+            "public.png",
+            "public.tiff"
+          ],
+          "sampling" : {
+            "baseline_phys_footprint_mib" : 6.9068679809570312,
+            "end_phys_footprint_mib" : 15.531867980957031,
+            "max_main_timer_gap_ms" : 6.0614583344431594,
+            "sampled_peak_phys_footprint_mib" : 23.391242980957031,
+            "timer_samples" : 18
+          },
+          "source_board_types" : [
+            "public.jpeg",
+            "CorePasteboardFlavorType 0x4A504547",
+            "public.tiff",
+            "NeXT TIFF v4.0 pasteboard type"
+          ],
+          "source_item_types" : [
+            "public.jpeg"
+          ],
+          "stored_payload_bytes" : 736898
+        },
+        {
+          "capture_main_call_ms" : 0.12745833373628557,
+          "capture_until_persisted_ms" : 71.332416671793908,
+          "copy_main_call_ms" : 0.023125001462176442,
+          "copy_until_commit_ms" : 22.39337500941474,
+          "history_entries" : 200,
+          "iteration" : 3,
+          "restored_representations" : [
+            "Apple PNG pasteboard type",
+            "NeXT TIFF v4.0 pasteboard type",
+            "app.clipboarddeck.internal",
+            "public.png",
+            "public.tiff"
+          ],
+          "sampling" : {
+            "baseline_phys_footprint_mib" : 6.9381179809570312,
+            "end_phys_footprint_mib" : 15.531867980957031,
+            "max_main_timer_gap_ms" : 5.5910416704136878,
+            "sampled_peak_phys_footprint_mib" : 20.797492980957031,
+            "timer_samples" : 18
+          },
+          "source_board_types" : [
+            "public.jpeg",
+            "CorePasteboardFlavorType 0x4A504547",
+            "public.tiff",
+            "NeXT TIFF v4.0 pasteboard type"
+          ],
+          "source_item_types" : [
+            "public.jpeg"
+          ],
+          "stored_payload_bytes" : 736898
+        }
+      ],
+      "source_representation_bytes" : 354600
+    }
+  ],
+  "scope" : "synthetic model; 200 short history entries; explicit capture; no external editor, application window, general clipboard, global hotkeys or user history",
+  "timer_interval_ms" : 5
+}

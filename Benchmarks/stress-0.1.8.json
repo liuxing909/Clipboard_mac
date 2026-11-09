@@ -1,0 +1,154 @@
+{
+  "app_version": "0.1.8",
+  "elapsed_seconds": 142.12429199999315,
+  "memory_metric": "task_vm_info.phys_footprint after each round; not a GUI memory limit or leak proof",
+  "os_version": "Version 26.3.2 (Build 25D2150)",
+  "rounds": 20,
+  "samples": [
+    {
+      "elapsed_seconds": 7.3100682083459105,
+      "physical_footprint_mib": 15.688484191894531,
+      "round": 1
+    },
+    {
+      "elapsed_seconds": 7.045238166669151,
+      "physical_footprint_mib": 15.907211303710938,
+      "round": 2
+    },
+    {
+      "elapsed_seconds": 7.075911916675977,
+      "physical_footprint_mib": 16.125961303710938,
+      "round": 3
+    },
+    {
+      "elapsed_seconds": 7.0115984583389945,
+      "physical_footprint_mib": 16.344711303710938,
+      "round": 4
+    },
+    {
+      "elapsed_seconds": 7.167713458329672,
+      "physical_footprint_mib": 16.563461303710938,
+      "round": 5
+    },
+    {
+      "elapsed_seconds": 7.043467208335642,
+      "physical_footprint_mib": 16.719711303710938,
+      "round": 6
+    },
+    {
+      "elapsed_seconds": 7.102541250002105,
+      "physical_footprint_mib": 16.938461303710938,
+      "round": 7
+    },
+    {
+      "elapsed_seconds": 7.082782958343159,
+      "physical_footprint_mib": 17.079086303710938,
+      "round": 8
+    },
+    {
+      "elapsed_seconds": 7.089986541657709,
+      "physical_footprint_mib": 17.313461303710938,
+      "round": 9
+    },
+    {
+      "elapsed_seconds": 7.135510416672332,
+      "physical_footprint_mib": 17.500961303710938,
+      "round": 10
+    },
+    {
+      "elapsed_seconds": 7.090983041678555,
+      "physical_footprint_mib": 17.782211303710938,
+      "round": 11
+    },
+    {
+      "elapsed_seconds": 7.024835666670697,
+      "physical_footprint_mib": 17.938461303710938,
+      "round": 12
+    },
+    {
+      "elapsed_seconds": 7.0806602083321195,
+      "physical_footprint_mib": 18.219711303710938,
+      "round": 13
+    },
+    {
+      "elapsed_seconds": 7.1478527916478924,
+      "physical_footprint_mib": 18.297836303710938,
+      "round": 14
+    },
+    {
+      "elapsed_seconds": 7.121821083332179,
+      "physical_footprint_mib": 22.485336303710938,
+      "round": 15
+    },
+    {
+      "elapsed_seconds": 7.03856554167578,
+      "physical_footprint_mib": 23.297836303710938,
+      "round": 16
+    },
+    {
+      "elapsed_seconds": 7.042807291669305,
+      "physical_footprint_mib": 25.375961303710938,
+      "round": 17
+    },
+    {
+      "elapsed_seconds": 7.028248833346879,
+      "physical_footprint_mib": 25.563461303710938,
+      "round": 18
+    },
+    {
+      "elapsed_seconds": 7.1294716666743625,
+      "physical_footprint_mib": 25.641586303710938,
+      "round": 19
+    },
+    {
+      "elapsed_seconds": 7.352947500010487,
+      "physical_footprint_mib": 25.969711303710938,
+      "round": 20
+    }
+  ],
+  "scope": "repeated isolated self-tests in one process; synthetic content and private pasteboards",
+  "verification_date": "2026-11-08",
+  "core_tests_passed": 35,
+  "core_random_operations": 1500,
+  "application_pass_groups": 340,
+  "peak_physical_footprint_mib": 176.9229507446289,
+  "maximum_resident_set_mib": 277.15625,
+  "note": "One run, synthetic large-image and lifecycle workloads. Round-end footprint increased; this is not normal GUI usage or proof of no leaks.",
+  "supplementary_run": {
+    "app_version": "0.1.8",
+    "elapsed_seconds": 21.300301666662563,
+    "memory_metric": "task_vm_info.phys_footprint after each round; not a GUI memory limit or leak proof",
+    "os_version": "Version 26.3.2 (Build 25D2150)",
+    "rounds": 3,
+    "samples": [
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 7.343996416690061,
+        "physical_footprint_mib": 15.563484191894531,
+        "round": 1
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 6.96878241666127,
+        "physical_footprint_mib": 15.860359191894531,
+        "round": 2
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 6.987244083342375,
+        "physical_footprint_mib": 16.06348419189453,
+        "round": 3
+      }
+    ],
+    "scope": "repeated isolated self-tests in one process; synthetic content and private pasteboards",
+    "additional_checks": [
+      "Malformed RTFD capture and paste preparation on the real background scheduler",
+      "Weak window/view/model release assertions"
+    ]
+  },
+  "leaks_diagnostic": {
+    "exit_code": 137,
+    "valid_report_obtained": false,
+    "note": "The instrumented test completed three rounds, but leaks terminated abnormally without a usable leak report. No remaining diagnostic processes were found."
+  }
+}

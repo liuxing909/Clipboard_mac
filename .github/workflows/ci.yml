@@ -1,0 +1,35 @@
+name: macOS build and tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Toolchain
+        run: swift --version
+      - name: Build universal application
+        run: bash scripts/build.sh
+      - name: Core tests
+        run: bash scripts/test.sh
+      - name: Isolated application self-tests
+        run: dist/剪贴匣.app/Contents/MacOS/ClipboardDeck --self-test
+      - name: Validate bundle
+        run: |
+          codesign --verify --deep --strict dist/剪贴匣.app
+          plutil -lint dist/剪贴匣.app/Contents/Info.plist

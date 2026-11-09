@@ -1,0 +1,430 @@
+{
+  "limitations" : [
+    "Timing measures serial direct ImageIO decoding, without production queue scheduling, cache lookup, NSImage creation or SwiftUI rendering.",
+    "Generated image creation and PNG encoding are excluded. Local files and ImageIO are warmed before the five alternating-order runs.",
+    "Decoded buffer cost is bytesPerRow multiplied by height; it is not process physical memory, allocator overhead or a peak-memory measurement.",
+    "The retained batch decodes the same square source 20 separate times and retains all results. It does not model cache deduplication or 20 unique photos.",
+    "Cache revisit uses 20 distinct synthetic keys backed by the same fixture, the production 12 MiB \/ 32-entry cache, and two forward passes; it excludes scheduling\/UI and does not predict other scroll patterns.",
+    "Different image contents, compression, bit depth, hardware and system load can change timings. The new list policy and the old policy intentionally produce different output sizes."
+  ],
+  "policies" : {
+    "baseline_600px" : "ThumbnailVariant.preview: the previous longest-edge 600 px policy",
+    "list" : "ThumbnailVariant.list: aspect-fit to the list pixel bounds; output dimensions are read from each decoded image"
+  },
+  "repeats_per_scenario" : 5,
+  "scenarios" : [
+    {
+      "baseline_600px" : {
+        "bytes_per_row" : 2400,
+        "decoded_buffer_bytes" : 1440000,
+        "maximum_decode_ms" : 7.8247916680993512,
+        "median_decode_ms" : 7.6177500013727695,
+        "minimum_decode_ms" : 7.4978750053560361,
+        "output_height" : 600,
+        "output_width" : 600
+      },
+      "decoded_buffer_reduction_percent" : 83.462222222222209,
+      "list" : {
+        "bytes_per_row" : 976,
+        "decoded_buffer_bytes" : 238144,
+        "maximum_decode_ms" : 9.2391666694311425,
+        "median_decode_ms" : 9.0213749936083332,
+        "minimum_decode_ms" : 8.9950416586361825,
+        "output_height" : 244,
+        "output_width" : 244
+      },
+      "name" : "square",
+      "runs" : [
+        {
+          "baseline_600px" : {
+            "bytes_per_row" : 2400,
+            "decode_ms" : 7.8247916680993512,
+            "decoded_buffer_bytes" : 1440000,
+            "output_height" : 600,
+            "output_width" : 600
+          },
+          "first_policy" : "baseline_600px",
+          "iteration" : 1,
+          "list" : {
+            "bytes_per_row" : 976,
+            "decode_ms" : 9.0386666706763208,
+            "decoded_buffer_bytes" : 238144,
+            "output_height" : 244,
+            "output_width" : 244
+          }
+        },
+        {
+          "baseline_600px" : {
+            "bytes_per_row" : 2400,
+            "decode_ms" : 7.6177500013727695,
+            "decoded_buffer_bytes" : 1440000,
+            "output_height" : 600,
+            "output_width" : 600
+          },
+          "first_policy" : "list",
+          "iteration" : 2,
+          "list" : {
+            "bytes_per_row" : 976,
+            "decode_ms" : 9.0213749936083332,
+            "decoded_buffer_bytes" : 238144,
+            "output_height" : 244,
+            "output_width" : 244
+          }
+        },
+        {
+          "baseline_600px" : {
+            "bytes_per_row" : 2400,
+            "decode_ms" : 7.6471249922178686,
+            "decoded_buffer_bytes" : 1440000,
+            "output_height" : 600,
+            "output_width" : 600
+          },
+          "first_policy" : "baseline_600px",
+          "iteration" : 3,
+          "list" : {
+            "bytes_per_row" : 976,
+            "decode_ms" : 9.2391666694311425,
+            "decoded_buffer_bytes" : 238144,
+            "output_height" : 244,
+            "output_width" : 244
+          }
+        },
+        {
+          "baseline_600px" : {
+            "bytes_per_row" : 2400,
+            "decode_ms" : 7.5457916682353243,
+            "decoded_buffer_bytes" : 1440000,
+            "output_height" : 600,
+            "output_width" : 600
+          },
+          "first_policy" : "list",
+          "iteration" : 4,
+          "list" : {
+            "bytes_per_row" : 976,
+            "decode_ms" : 9.0148333256365731,
+            "decoded_buffer_bytes" : 238144,
+            "output_height" : 244,
+            "output_width" : 244
+          }
+        },
+        {
+          "baseline_600px" : {
+            "bytes_per_row" : 2400,
+            "decode_ms" : 7.4978750053560361,
+            "decoded_buffer_bytes" : 1440000,
+            "output_height" : 600,
+            "output_width" : 600
+          },
+          "first_policy" : "baseline_600px",
+          "iteration" : 5,
+          "list" : {
+            "bytes_per_row" : 976,
+            "decode_ms" : 8.9950416586361825,
+            "decoded_buffer_bytes" : 238144,
+            "output_height" : 244,
+            "output_width" : 244
+          }
+        }
+      ],
+      "source_height" : 2000,
+      "source_png_bytes" : 80566,
+      "source_width" : 2000
+    },
+    {
+      "baseline_600px" : {
+        "bytes_per_row" : 1200,
+        "decoded_buffer_bytes" : 720000,
+        "maximum_decode_ms" : 5.7216249988414347,
+        "median_decode_ms" : 5.5453749955631793,
+        "minimum_decode_ms" : 5.4995833343127742,
+        "output_height" : 600,
+        "output_width" : 300
+      },
+      "decoded_buffer_reduction_percent" : 83.191111111111098,
+      "list" : {
+        "bytes_per_row" : 496,
+        "decoded_buffer_bytes" : 121024,
+        "maximum_decode_ms" : 6.7292500025359914,
+        "median_decode_ms" : 6.6866250126622617,
+        "minimum_decode_ms" : 6.5461250051157549,
+        "output_height" : 244,
+        "output_width" : 122
+      },
+      "name" : "portrait",
+      "runs" : [
+        {
+          "baseline_600px" : {
+            "bytes_per_row" : 1200,
+            "decode_ms" : 5.6765833287499845,
+            "decoded_buffer_bytes" : 720000,
+            "output_height" : 600,
+            "output_width" : 300
+          },
+          "first_policy" : "baseline_600px",
+          "iteration" : 1,
+          "list" : {
+            "bytes_per_row" : 496,
+            "decode_ms" : 6.6866250126622617,
+            "decoded_buffer_bytes" : 121024,
+            "output_height" : 244,
+            "output_width" : 122
+          }
+        },
+        {
+          "baseline_600px" : {
+            "bytes_per_row" : 1200,
+            "decode_ms" : 5.7216249988414347,
+            "decoded_buffer_bytes" : 720000,
+            "output_height" : 600,
+            "output_width" : 300
+          },
+          "first_policy" : "list",
+          "iteration" : 2,
+          "list" : {
+            "bytes_per_row" : 496,
+            "decode_ms" : 6.5461250051157549,
+            "decoded_buffer_bytes" : 121024,
+            "output_height" : 244,
+            "output_width" : 122
+          }
+        },
+        {
+          "baseline_600px" : {
+            "bytes_per_row" : 1200,
+            "decode_ms" : 5.5453749955631793,
+            "decoded_buffer_bytes" : 720000,
+            "output_height" : 600,
+            "output_width" : 300
+          },
+          "first_policy" : "baseline_600px",
+          "iteration" : 3,
+          "list" : {
+            "bytes_per_row" : 496,
+            "decode_ms" : 6.618791667278856,
+            "decoded_buffer_bytes" : 121024,
+            "output_height" : 244,
+            "output_width" : 122
+          }
+        },
+        {
+          "baseline_600px" : {
+            "bytes_per_row" : 1200,
+            "decode_ms" : 5.4995833343127742,
+            "decoded_buffer_bytes" : 720000,
+            "output_height" : 600,
+            "output_width" : 300
+          },
+          "first_policy" : "list",
+          "iteration" : 4,
+          "list" : {
+            "bytes_per_row" : 496,
+            "decode_ms" : 6.723916667397134,
+            "decoded_buffer_bytes" : 121024,
+            "output_height" : 244,
+            "output_width" : 122
+          }
+        },
+        {
+          "baseline_600px" : {
+            "bytes_per_row" : 1200,
+            "decode_ms" : 5.5052499956218526,
+            "decoded_buffer_bytes" : 720000,
+            "output_height" : 600,
+            "output_width" : 300
+          },
+          "first_policy" : "baseline_600px",
+          "iteration" : 5,
+          "list" : {
+            "bytes_per_row" : 496,
+            "decode_ms" : 6.7292500025359914,
+            "decoded_buffer_bytes" : 121024,
+            "output_height" : 244,
+            "output_width" : 122
+          }
+        }
+      ],
+      "source_height" : 2400,
+      "source_png_bytes" : 63409,
+      "source_width" : 1200
+    },
+    {
+      "baseline_600px" : {
+        "bytes_per_row" : 2400,
+        "decoded_buffer_bytes" : 720000,
+        "maximum_decode_ms" : 17.149083330878057,
+        "median_decode_ms" : 6.2624583370052278,
+        "minimum_decode_ms" : 6.0399166686693206,
+        "output_height" : 300,
+        "output_width" : 600
+      },
+      "decoded_buffer_reduction_percent" : 33.848888888888887,
+      "list" : {
+        "bytes_per_row" : 1952,
+        "decoded_buffer_bytes" : 476288,
+        "maximum_decode_ms" : 10.645500005921349,
+        "median_decode_ms" : 7.5535000069066882,
+        "minimum_decode_ms" : 7.1826250059530139,
+        "output_height" : 244,
+        "output_width" : 488
+      },
+      "name" : "landscape",
+      "runs" : [
+        {
+          "baseline_600px" : {
+            "bytes_per_row" : 2400,
+            "decode_ms" : 6.1974166601430625,
+            "decoded_buffer_bytes" : 720000,
+            "output_height" : 300,
+            "output_width" : 600
+          },
+          "first_policy" : "baseline_600px",
+          "iteration" : 1,
+          "list" : {
+            "bytes_per_row" : 1952,
+            "decode_ms" : 7.2235000116052106,
+            "decoded_buffer_bytes" : 476288,
+            "output_height" : 244,
+            "output_width" : 488
+          }
+        },
+        {
+          "baseline_600px" : {
+            "bytes_per_row" : 2400,
+            "decode_ms" : 6.0399166686693206,
+            "decoded_buffer_bytes" : 720000,
+            "output_height" : 300,
+            "output_width" : 600
+          },
+          "first_policy" : "list",
+          "iteration" : 2,
+          "list" : {
+            "bytes_per_row" : 1952,
+            "decode_ms" : 7.1826250059530139,
+            "decoded_buffer_bytes" : 476288,
+            "output_height" : 244,
+            "output_width" : 488
+          }
+        },
+        {
+          "baseline_600px" : {
+            "bytes_per_row" : 2400,
+            "decode_ms" : 6.2624583370052278,
+            "decoded_buffer_bytes" : 720000,
+            "output_height" : 300,
+            "output_width" : 600
+          },
+          "first_policy" : "baseline_600px",
+          "iteration" : 3,
+          "list" : {
+            "bytes_per_row" : 1952,
+            "decode_ms" : 7.5535000069066882,
+            "decoded_buffer_bytes" : 476288,
+            "output_height" : 244,
+            "output_width" : 488
+          }
+        },
+        {
+          "baseline_600px" : {
+            "bytes_per_row" : 2400,
+            "decode_ms" : 12.529791667475365,
+            "decoded_buffer_bytes" : 720000,
+            "output_height" : 300,
+            "output_width" : 600
+          },
+          "first_policy" : "list",
+          "iteration" : 4,
+          "list" : {
+            "bytes_per_row" : 1952,
+            "decode_ms" : 8.7372916605090722,
+            "decoded_buffer_bytes" : 476288,
+            "output_height" : 244,
+            "output_width" : 488
+          }
+        },
+        {
+          "baseline_600px" : {
+            "bytes_per_row" : 2400,
+            "decode_ms" : 17.149083330878057,
+            "decoded_buffer_bytes" : 720000,
+            "output_height" : 300,
+            "output_width" : 600
+          },
+          "first_policy" : "baseline_600px",
+          "iteration" : 5,
+          "list" : {
+            "bytes_per_row" : 1952,
+            "decode_ms" : 10.645500005921349,
+            "decoded_buffer_bytes" : 476288,
+            "output_height" : 244,
+            "output_width" : 488
+          }
+        }
+      ],
+      "source_height" : 1200,
+      "source_png_bytes" : 58350,
+      "source_width" : 2400
+    }
+  ],
+  "scope" : "direct thumbnail loader microbenchmark; generated PNG files; no application window, pasteboard, user history or cache",
+  "twenty_key_cache_revisit" : {
+    "baseline_600px" : {
+      "cache_budget_bytes" : 12582912,
+      "cache_count_limit" : 32,
+      "passes" : [
+        {
+          "cache_cost_bytes" : 11520000,
+          "cached_items" : 8,
+          "decodes" : 20,
+          "elapsed_ms" : 157.63187500124332,
+          "hits" : 0,
+          "pass" : 1
+        },
+        {
+          "cache_cost_bytes" : 11520000,
+          "cached_items" : 8,
+          "decodes" : 20,
+          "elapsed_ms" : 154.33370832761284,
+          "hits" : 0,
+          "pass" : 2
+        }
+      ]
+    },
+    "list" : {
+      "cache_budget_bytes" : 12582912,
+      "cache_count_limit" : 32,
+      "passes" : [
+        {
+          "cache_cost_bytes" : 4762880,
+          "cached_items" : 20,
+          "decodes" : 20,
+          "elapsed_ms" : 182.06599999393802,
+          "hits" : 0,
+          "pass" : 1
+        },
+        {
+          "cache_cost_bytes" : 4762880,
+          "cached_items" : 20,
+          "decodes" : 0,
+          "elapsed_ms" : 0.0035833363654091954,
+          "hits" : 20,
+          "pass" : 2
+        }
+      ]
+    }
+  },
+  "twenty_square_decodes_retained" : {
+    "baseline_600px" : {
+      "decoded_images_retained" : 20,
+      "total_decode_ms" : 162.88233333034441,
+      "total_decoded_buffer_bytes" : 28800000,
+      "total_decoded_buffer_mib" : 27.4658203125
+    },
+    "list" : {
+      "decoded_images_retained" : 20,
+      "total_decode_ms" : 183.74454167496879,
+      "total_decoded_buffer_bytes" : 4762880,
+      "total_decoded_buffer_mib" : 4.542236328125
+    }
+  },
+  "warmups_per_policy_per_scenario" : 1
+}

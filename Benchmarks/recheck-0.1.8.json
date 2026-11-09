@@ -1,0 +1,294 @@
+{
+  "verification_date": "2026-11-08",
+  "app_version": "0.1.8",
+  "scope": "Synthetic data, named pasteboards, temporary history and isolated settings; no personal clipboard or documents.",
+  "limits": [
+    "Round-end physical footprint is not a peak or a normal GUI memory limit.",
+    "malloc statistics may include untouched virtual allocations, not resident physical RAM.",
+    "leaks results cover three format-fuzz rounds only; they do not prove all paths leak-free.",
+    "Real Word/WPS/Pages windows and macOS 10.15 hardware remain unverified."
+  ],
+  "before_bounded_rtfd_reader": {
+    "suite": "format-fuzz",
+    "rounds": 10,
+    "elapsed_seconds": 9.485417416668497,
+    "first_sample": {
+      "appkit_window_count": 0,
+      "elapsed_seconds": 0.9421972916752566,
+      "malloc_allocated_bytes": 62203494400,
+      "malloc_in_use_bytes": 62185328240,
+      "malloc_live_blocks": 19105,
+      "physical_footprint_mib": 6.20367431640625,
+      "round": 1
+    },
+    "last_sample": {
+      "appkit_window_count": 0,
+      "elapsed_seconds": 0.9478662500041537,
+      "malloc_allocated_bytes": 621854588928,
+      "malloc_in_use_bytes": 621835947248,
+      "malloc_live_blocks": 22796,
+      "physical_footprint_mib": 8.234947204589844,
+      "round": 10
+    },
+    "mutation_and_control_inputs_per_round": 256
+  },
+  "after_bounded_reader_before_flavor_metadata_fix": {
+    "suite": "format-fuzz",
+    "rounds": 20,
+    "elapsed_seconds": 27.61052675000974,
+    "first_sample": {
+      "appkit_window_count": 0,
+      "elapsed_seconds": 1.3715918333327863,
+      "malloc_allocated_bytes": 20971520,
+      "malloc_in_use_bytes": 1963328,
+      "malloc_live_blocks": 20236,
+      "physical_footprint_mib": 6.29742431640625,
+      "round": 1
+    },
+    "last_sample": {
+      "appkit_window_count": 0,
+      "elapsed_seconds": 1.3895451249845792,
+      "malloc_allocated_bytes": 20971520,
+      "malloc_in_use_bytes": 2074736,
+      "malloc_live_blocks": 21301,
+      "physical_footprint_mib": 6.39117431640625,
+      "round": 20
+    },
+    "mutation_and_control_inputs_per_round": 448
+  },
+  "before_flavor_metadata_fix_leaks": {
+    "exit_code": 1,
+    "timeout": false,
+    "seconds": 11.577,
+    "suite": "format-fuzz",
+    "rounds": 3,
+    "leaks": 72,
+    "leaked_bytes": 4608,
+    "finding": "System-synthesized RTF text conversion requested from snapshot."
+  },
+  "final_full_stress": {
+    "app_version": "0.1.8",
+    "elapsed_seconds": 171.13710858332342,
+    "memory_metric": "task_vm_info.phys_footprint after each round; not a GUI memory limit or leak proof",
+    "os_version": "Version 26.3.2 (Build 25D2150)",
+    "rounds": 20,
+    "samples": [
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.837737291643862,
+        "malloc_allocated_bytes": 58720256,
+        "malloc_in_use_bytes": 13907872,
+        "malloc_live_blocks": 55176,
+        "physical_footprint_mib": 16.54785919189453,
+        "round": 1
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.5806206666457,
+        "malloc_allocated_bytes": 58720256,
+        "malloc_in_use_bytes": 17898624,
+        "malloc_live_blocks": 56834,
+        "physical_footprint_mib": 16.59473419189453,
+        "round": 2
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.602217875013594,
+        "malloc_allocated_bytes": 58720256,
+        "malloc_in_use_bytes": 18063296,
+        "malloc_live_blocks": 58872,
+        "physical_footprint_mib": 16.71973419189453,
+        "round": 3
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.57099354165257,
+        "malloc_allocated_bytes": 58720256,
+        "malloc_in_use_bytes": 18078720,
+        "malloc_live_blocks": 58790,
+        "physical_footprint_mib": 16.73535919189453,
+        "round": 4
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.884317958320025,
+        "malloc_allocated_bytes": 58720256,
+        "malloc_in_use_bytes": 17954704,
+        "malloc_live_blocks": 56595,
+        "physical_footprint_mib": 16.71973419189453,
+        "round": 5
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.561097124998923,
+        "malloc_allocated_bytes": 58720256,
+        "malloc_in_use_bytes": 17974000,
+        "malloc_live_blocks": 57221,
+        "physical_footprint_mib": 16.71973419189453,
+        "round": 6
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.584180916688638,
+        "malloc_allocated_bytes": 58720256,
+        "malloc_in_use_bytes": 17984944,
+        "malloc_live_blocks": 57120,
+        "physical_footprint_mib": 16.64160919189453,
+        "round": 7
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.564412416657433,
+        "malloc_allocated_bytes": 58720256,
+        "malloc_in_use_bytes": 18083952,
+        "malloc_live_blocks": 58484,
+        "physical_footprint_mib": 16.64160919189453,
+        "round": 8
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.54417354168254,
+        "malloc_allocated_bytes": 58720256,
+        "malloc_in_use_bytes": 18052352,
+        "malloc_live_blocks": 57482,
+        "physical_footprint_mib": 16.57910919189453,
+        "round": 9
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.783337041648338,
+        "malloc_allocated_bytes": 58720256,
+        "malloc_in_use_bytes": 17999312,
+        "malloc_live_blocks": 57165,
+        "physical_footprint_mib": 16.62598419189453,
+        "round": 10
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.548875874985242,
+        "malloc_allocated_bytes": 58720256,
+        "malloc_in_use_bytes": 18068848,
+        "malloc_live_blocks": 57746,
+        "physical_footprint_mib": 16.61035919189453,
+        "round": 11
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.518835875001969,
+        "malloc_allocated_bytes": 58720256,
+        "malloc_in_use_bytes": 18214304,
+        "malloc_live_blocks": 59880,
+        "physical_footprint_mib": 16.68848419189453,
+        "round": 12
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.565687833324773,
+        "malloc_allocated_bytes": 58720256,
+        "malloc_in_use_bytes": 18176816,
+        "malloc_live_blocks": 59056,
+        "physical_footprint_mib": 16.67285919189453,
+        "round": 13
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.59187529166229,
+        "malloc_allocated_bytes": 58720256,
+        "malloc_in_use_bytes": 18233504,
+        "malloc_live_blocks": 59875,
+        "physical_footprint_mib": 16.65723419189453,
+        "round": 14
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.78697258332977,
+        "malloc_allocated_bytes": 58720256,
+        "malloc_in_use_bytes": 18003472,
+        "malloc_live_blocks": 56057,
+        "physical_footprint_mib": 16.57910919189453,
+        "round": 15
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.57157433332759,
+        "malloc_allocated_bytes": 58720256,
+        "malloc_in_use_bytes": 18122832,
+        "malloc_live_blocks": 57908,
+        "physical_footprint_mib": 16.59473419189453,
+        "round": 16
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.557397500000661,
+        "malloc_allocated_bytes": 58720256,
+        "malloc_in_use_bytes": 18167680,
+        "malloc_live_blocks": 58508,
+        "physical_footprint_mib": 16.62598419189453,
+        "round": 17
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.619020166661358,
+        "malloc_allocated_bytes": 58720256,
+        "malloc_in_use_bytes": 18110912,
+        "malloc_live_blocks": 57613,
+        "physical_footprint_mib": 16.57910919189453,
+        "round": 18
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.10418904168182,
+        "malloc_allocated_bytes": 58720256,
+        "malloc_in_use_bytes": 18272816,
+        "malloc_live_blocks": 59776,
+        "physical_footprint_mib": 16.70410919189453,
+        "round": 19
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 7.758732291666092,
+        "malloc_allocated_bytes": 58720256,
+        "malloc_in_use_bytes": 18282896,
+        "malloc_live_blocks": 59697,
+        "physical_footprint_mib": 16.68848419189453,
+        "round": 20
+      }
+    ],
+    "scope": "repeated isolated self-tests in one process; synthetic content and private pasteboards",
+    "suite": "all",
+    "verification_date": "2026-11-08",
+    "core_tests_passed": 38,
+    "core_random_operations": 4000,
+    "pass_groups": 340,
+    "peak_footprint_bytes": 180012136
+  },
+  "final_leaks": {
+    "exit_code": 0,
+    "timeout": false,
+    "seconds": 11.503,
+    "leaks": 0,
+    "leaked_bytes": 0,
+    "valid_report": true,
+    "suite": "format-fuzz",
+    "rounds": 3
+  },
+  "final_full_stress_cases": {
+    "format_mutation_and_control_inputs": 8960,
+    "explicit_rtfd_structural_rejections": 360,
+    "deletion_capture_schedules": 320,
+    "queue_admission_and_failed_clear_cases": 160
+  },
+  "package": {
+    "filename": "ClipboardDeck-0.1.8-universal.dmg",
+    "sha256": "c3f87106fe0eda12888d880c3ecf705ffd3470cdae4b5ecfb225d66234445e96",
+    "architectures": [
+      "arm64",
+      "x86_64"
+    ],
+    "minimum_macos": {
+      "arm64": "11.0",
+      "x86_64": "10.15"
+    },
+    "signing": "ad-hoc; not notarized"
+  }
+}

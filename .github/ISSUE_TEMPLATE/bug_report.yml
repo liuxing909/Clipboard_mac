@@ -1,0 +1,29 @@
+name: Bug 反馈
+description: 报告可复现的问题
+title: "[Bug] "
+body:
+  - type: input
+    id: environment
+    attributes:
+      label: 运行环境
+      description: macOS 版本、Intel 或 Apple Silicon、剪贴匣版本。
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 涉及复制粘贴时，请注明来源应用、目标应用和内容类型，并使用虚构内容举例。
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: 预期行为与实际结果
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: 日志或截图（可选）
+      description: 请先移除剪贴板里的个人内容、路径和账号信息。

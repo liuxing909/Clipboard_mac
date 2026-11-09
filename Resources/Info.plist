@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+    <key>CFBundleExecutable</key><string>ClipboardDeck</string>
+    <key>CFBundleIdentifier</key><string>local.clipboarddeck.app</string>
+    <key>CFBundleName</key><string>剪贴匣</string>
+    <key>CFBundleDisplayName</key><string>剪贴匣</string>
+    <key>CFBundlePackageType</key><string>APPL</string>
+    <key>CFBundleShortVersionString</key><string>0.1.8</string>
+    <key>CFBundleVersion</key><string>9</string>
+    <key>CFBundleIconFile</key><string>AppIcon</string>
+    <key>LSMinimumSystemVersion</key><string>10.15</string>
+    <key>LSMinimumSystemVersionByArchitecture</key><dict>
+        <key>x86_64</key><string>10.15</string>
+        <key>arm64</key><string>11.0</string>
+    </dict>
+    <key>LSUIElement</key><true/>
+    <key>NSHighResolutionCapable</key><true/>
+    <key>NSSupportsAutomaticGraphicsSwitching</key><true/>
+    <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
+</dict></plist>
