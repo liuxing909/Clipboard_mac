@@ -451,6 +451,8 @@ public final class HistoryStore {
         var seen: Set<String> = []
         var bytes = 0
         for url in urls {
+            // Bound the supplied representation before Foundation normalizes it.
+            guard url.absoluteString.utf8.count <= maxFileReferenceBytes else { throw HistoryError.tooLarge }
             guard url.isFileURL, url.path.hasPrefix("/"), !url.path.contains("\0"),
                 url.host == nil || url.host == "" || url.host?.lowercased() == "localhost",
                 url.user == nil, url.password == nil, url.port == nil,

@@ -592,11 +592,14 @@ import Testing
         let store = try HistoryStore(directory: root)
         try store.add(.text("untouched"), sourceApp: "Editor")
         let before = store.entries
+        let oversizedReference = try #require(
+            URL(string: "file:///" + String(repeating: "x", count: HistoryStore.maxFileReferenceBytes)))
+        try #require(oversizedReference.absoluteString.utf8.count > HistoryStore.maxFileReferenceBytes)
         let cases: [[URL]] = [
             [], [URL(string: "https://example.com/a")!], [URL(string: "file://remote-host/share/a")!],
             [URL(string: "file:///tmp/a?query=value")!], [URL(string: "file:///tmp/a#fragment")!],
             (0...HistoryStore.maxFileCount).map { root.appendingPathComponent("file-\($0)") },
-            [URL(fileURLWithPath: "/" + String(repeating: "x", count: HistoryStore.maxFileReferenceBytes))],
+            [oversizedReference],
         ]
         for urls in cases { #expect(throws: HistoryError.self) { try store.add(.files(urls), sourceApp: "Finder") } }
         #expect(store.entries == before)
