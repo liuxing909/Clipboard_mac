@@ -13,6 +13,11 @@ MainActor.assumeIsolated {
             try PreviewSupport.render(to: URL(fileURLWithPath: arguments[2]), legacy: true)
         } else if arguments.count == 3 && arguments[1] == "--render-hotkey-warning" {
             try PreviewSupport.render(to: URL(fileURLWithPath: arguments[2]), hotkeyWarning: true)
+        } else if arguments.count == 3 && arguments[1] == "--render-settings-preview" {
+            try PreviewSupport.render(to: URL(fileURLWithPath: arguments[2]), hotkeyWarning: true, settings: true)
+        } else if arguments.count == 3 && arguments[1] == "--render-legacy-settings-preview" {
+            try PreviewSupport.render(
+                to: URL(fileURLWithPath: arguments[2]), hotkeyWarning: true, legacy: true, settings: true)
         } else if arguments.count == 3 && arguments[1] == "--make-icon" {
             try PreviewSupport.makeIcon(to: URL(fileURLWithPath: arguments[2]))
         } else if arguments.count >= 2 && arguments[1] == "--stress-test" {

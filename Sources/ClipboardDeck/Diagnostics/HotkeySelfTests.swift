@@ -1,4 +1,5 @@
 import Carbon
+import Foundation
 
 /// Exercises registration and routing without installing a system event handler or shortcut.
 enum HotkeySelfTests {
@@ -53,10 +54,92 @@ enum HotkeySelfTests {
         unavailable.shouldFailHandler = false
         try check(succeeded(disabled.register(preset: 0)), "retry recovers a previously unavailable event handler")
         try checkSystemShortcutFilter()
+        try checkCustomShortcuts()
+        try checkHeldKeyRouting()
         try checkRepeatedReplacement()
         print(
             "PASS: fake hotkey registration / conflict rollback / 2000 replacement attempts / stale event routing / invalid preset / cleanup"
         )
+    }
+
+    private static func checkHeldKeyRouting() throws {
+        let router = HotkeyEventRouter()
+        let key = EventHotKeyID(signature: 0x43445041, id: 1)
+        let foreign = EventHotKeyID(signature: 0, id: 1)
+        var presses = 0
+        func receive(_ id: EventHotKeyID) -> Bool {
+            guard id.signature == key.signature else { return false }
+            presses += 1
+            return true
+        }
+        for _ in 0..<100 {
+            try check(
+                router.receive(key, kind: UInt32(kEventHotKeyPressed), press: receive),
+                "holding a registered key remains handled")
+        }
+        try check(presses == 1, "held shortcut cannot reopen the panel after a recorder consumes its first press")
+        try check(
+            !router.receive(foreign, kind: UInt32(kEventHotKeyReleased), press: receive),
+            "foreign release cannot reset the held key")
+        try check(
+            router.receive(key, kind: UInt32(kEventHotKeyReleased), press: receive), "matching release is handled")
+        try check(
+            router.receive(key, kind: UInt32(kEventHotKeyPressed), press: receive) && presses == 2,
+            "a new physical press after release activates the shortcut again")
+        router.cancel(key)
+        try check(
+            router.receive(key, kind: UInt32(kEventHotKeyPressed), press: receive) && presses == 3,
+            "cancelling a registration clears its held state")
+        try check(
+            !router.receive(foreign, kind: UInt32(kEventHotKeyPressed), press: receive),
+            "unhandled foreign hotkeys do not consume another application's event")
+    }
+
+    private static func checkCustomShortcuts() throws {
+        let backend = FakeBackend()
+        let hotkey = GlobalHotkey(backend: backend)
+        let custom = HotkeyShortcut(keyCode: UInt32(kVK_ANSI_K), modifiers: UInt32(cmdKey | shiftKey))
+        let alternative = HotkeyShortcut(keyCode: UInt32(kVK_F12), modifiers: UInt32(controlKey | optionKey))
+        var presses = 0
+        hotkey.onPress = { presses += 1 }
+        try check(custom.label == "⇧⌘K" && custom.isValid, "custom key has a readable label")
+        let encoded = try JSONEncoder().encode(custom)
+        let decoded = try JSONDecoder().decode(HotkeyShortcut.self, from: encoded)
+        try check(decoded == custom, "custom key code and modifiers survive Codable round trip")
+        try check(succeeded(hotkey.register(shortcut: custom)), "arbitrary custom key registers")
+        let first = backend.requests[0]
+        try check(backend.shortcuts == [custom], "registration receives custom hardware key and Carbon modifiers")
+        try check(
+            succeeded(hotkey.register(shortcut: custom)) && backend.requests.count == 1,
+            "unchanged custom key does not attempt duplicate registration")
+        let invalid = [
+            HotkeyShortcut(keyCode: UInt32(kVK_ANSI_K), modifiers: 0),
+            HotkeyShortcut(keyCode: UInt32(kVK_ANSI_K), modifiers: UInt32(shiftKey)),
+            HotkeyShortcut(keyCode: UInt32(kVK_Command), modifiers: UInt32(cmdKey)),
+            HotkeyShortcut(keyCode: .max, modifiers: UInt32(cmdKey)),
+            HotkeyShortcut(keyCode: UInt32(kVK_ANSI_K), modifiers: UInt32(cmdKey) | (1 << 31)),
+        ]
+        for value in invalid {
+            try check(
+                failure(hotkey.register(shortcut: value)) == .invalidShortcut,
+                "unsupported and unmodified keys cannot consume global keyboard input")
+        }
+        try check(
+            backend.requests.count == 1 && backend.cancelledIDs.isEmpty && backend.send(first),
+            "invalid custom keys leave the working key registered")
+        backend.shouldFailRegistration = true
+        try check(
+            failure(hotkey.register(shortcut: alternative)) == .occupied,
+            "custom conflicts use the same exclusive registration path")
+        try check(
+            backend.cancelledIDs.isEmpty && backend.send(first) && presses == 2,
+            "custom conflict keeps the previous registration live")
+        backend.shouldFailRegistration = false
+        try check(succeeded(hotkey.register(shortcut: alternative)), "custom conflict can be retried")
+        try check(
+            backend.shortcuts.last == alternative && backend.cancelledIDs == [first.id],
+            "successful custom replacement cancels the previous registration once")
+        try check(!backend.send(first), "old custom key events cannot activate a replacement")
     }
 
     private static func checkRepeatedReplacement() throws {
@@ -172,6 +255,7 @@ enum HotkeySelfTests {
         var shouldFailRegistration = false
         var shouldFailHandler = false
         var requests: [EventHotKeyID] = []
+        var shortcuts: [HotkeyShortcut] = []
         var cancelledIDs: [UInt32] = []
         var removeCount = 0
         private var receive: ((EventHotKeyID) -> Bool)?
@@ -186,6 +270,7 @@ enum HotkeySelfTests {
             HotkeyRegistration, HotkeyFailure
         > {
             requests.append(id)
+            shortcuts.append(HotkeyShortcut(keyCode: keyCode, modifiers: modifiers))
             guard !shouldFailRegistration else { return .failure(.occupied) }
             return .success(HotkeyRegistration { [weak self] in self?.cancelledIDs.append(id.id) })
         }

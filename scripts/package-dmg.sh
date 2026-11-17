@@ -49,8 +49,15 @@ Intel Mac：macOS 10.15 或更高版本；Apple Silicon Mac：macOS 11 或更高
 更新版本时，请先从旧版设置中退出，再将新版本拖入 Applications 替换。
 安装包不包含你的历史记录，替换应用不会主动清空历史。
 
-本包是本地测试构建，使用 ad-hoc 签名，尚未进行 Apple Developer ID 签名和公证。
-正式对外发布前需要完成签名与公证，才能减少其他 Mac 从网络下载后的系统拦截。
+本包是早期预览版本，使用 ad-hoc 签名，尚未进行 Apple Developer ID 签名和公证。
+下载后若提示无法验证开发者：确认来自本项目的 GitHub Release，先尝试打开一次，
+再前往“系统设置 → 隐私与安全性 → 仍要打开”。旧版 macOS 对应
+“系统偏好设置 → 安全性与隐私 → 通用”。不需要关闭系统安全保护。
+此首次打开限制与自动粘贴所需的“辅助功能”授权是两件事。
+Apple 官方说明：https://support.apple.com/zh-cn/102445
+
+拖动面板顶部“剪贴匣”标题或旁边空白区域可移动窗口。
+设置中点击快捷键录制控件，再按组合键；Esc 取消。冲突时会提示并保留原快捷键。
 EOF
 
 /usr/bin/hdiutil create -volname "剪贴匣 $VERSION" -srcfolder "$STAGING/contents" \

@@ -31,6 +31,8 @@ final class LegacyHistoryView: NSView, NSTableViewDataSource, NSTableViewDelegat
     private var subscription: AnyCancellable?
     private var settingsWarning: NSTextField?
     private var hotkeyPicker: NSPopUpButton?
+    private var shortcutRecorder: ShortcutRecorderControl?
+    private var settingsScrollView: NSScrollView?
     private var rows: [ClipEntry] = []
     private var updating = false
     private var presentationID: UUID?
@@ -54,7 +56,17 @@ final class LegacyHistoryView: NSView, NSTableViewDataSource, NSTableViewDelegat
         ])
         let title = NSTextField(labelWithString: "剪贴匣")
         title.font = .boldSystemFont(ofSize: 22)
-        let header = NSStackView(views: [title, NSView(), pause, settingsButton])
+        let dragArea = WindowDragView()
+        title.translatesAutoresizingMaskIntoConstraints = false
+        dragArea.addSubview(title)
+        NSLayoutConstraint.activate([
+            title.leadingAnchor.constraint(equalTo: dragArea.leadingAnchor),
+            title.centerYAnchor.constraint(equalTo: dragArea.centerYAnchor),
+            title.trailingAnchor.constraint(lessThanOrEqualTo: dragArea.trailingAnchor),
+            dragArea.heightAnchor.constraint(equalToConstant: 36),
+            dragArea.widthAnchor.constraint(greaterThanOrEqualToConstant: 120),
+        ])
+        let header = NSStackView(views: [dragArea, pause, settingsButton])
         header.orientation = .horizontal; header.spacing = 8
         pause.target = self; pause.action = #selector(togglePause)
         settingsButton.target = self; settingsButton.action = #selector(openSettings)
@@ -143,7 +155,9 @@ final class LegacyHistoryView: NSView, NSTableViewDataSource, NSTableViewDelegat
         filter.selectItem(at: ClipFilter.allCases.firstIndex(of: model.filter) ?? 0)
         if search.stringValue != model.query { search.stringValue = model.query }
         settingsWarning?.stringValue = warning ?? "快捷键正常"
-        hotkeyPicker?.selectItem(at: model.hotkeyPreset)
+        resizeSettingsContent()
+        hotkeyPicker?.selectItem(at: model.hotkeyPreset + 1)
+        shortcutRecorder?.shortcut = model.shortcut
         if !model.showingSettings { settingsPopover.close() }
         if presentationID != model.presentationID {
             presentationID = model.presentationID
@@ -246,20 +260,28 @@ final class LegacyHistoryView: NSView, NSTableViewDataSource, NSTableViewDelegat
         }
     }
 
-    @objc private func openSettings() {
-        let controller = NSViewController()
+    func makeSettingsView() -> NSView {
         let stack = NSStackView()
         stack.orientation = .vertical; stack.alignment = .leading; stack.spacing = 12
         stack.edgeInsets = NSEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
         let title = NSTextField(labelWithString: "设置 · 剪贴匣")
         title.font = .boldSystemFont(ofSize: 16); stack.addArrangedSubview(title)
         let keys = NSPopUpButton()
-        keys.addItems(withTitles: HotkeyPresets.labels); keys.selectItem(at: model.hotkeyPreset)
+        keys.addItems(withTitles: ["自定义"] + HotkeyPresets.labels); keys.selectItem(at: model.hotkeyPreset + 1)
         keys.target = self; keys.action = #selector(changeHotkey)
-        stack.addArrangedSubview(NSTextField(labelWithString: "呼出快捷键")); stack.addArrangedSubview(keys)
+        stack.addArrangedSubview(NSTextField(labelWithString: "呼出快捷键"))
+        let recorder = ShortcutRecorderControl()
+        recorder.bind(to: model)
+        stack.addArrangedSubview(recorder); shortcutRecorder = recorder
+        let recorderHint = NSTextField(wrappingLabelWithString: "点击上方后按组合键，Esc 取消。需包含 ⌃、⌥ 或 ⌘。系统直接处理的组合可能无法录入，请换一组。")
+        recorderHint.font = .systemFont(ofSize: 11); recorderHint.preferredMaxLayoutWidth = 290
+        recorderHint.widthAnchor.constraint(equalToConstant: 290).isActive = true
+        stack.addArrangedSubview(recorderHint)
+        stack.addArrangedSubview(keys)
         hotkeyPicker = keys
         let warning = NSTextField(wrappingLabelWithString: model.hotkeyWarning?.message ?? "快捷键正常")
         warning.font = .systemFont(ofSize: 11); warning.textColor = .systemOrange
+        warning.widthAnchor.constraint(equalToConstant: 290).isActive = true
         warning.preferredMaxLayoutWidth = 290; stack.addArrangedSubview(warning); settingsWarning = warning
         stack.addArrangedSubview(button("重试快捷键", #selector(retryHotkey)))
         let limit = NSPopUpButton()
@@ -271,22 +293,45 @@ final class LegacyHistoryView: NSView, NSTableViewDataSource, NSTableViewDelegat
         stack.addArrangedSubview(button("开启辅助功能以自动粘贴…", #selector(accessibility)))
         let detail = NSTextField(wrappingLabelWithString: "记录只保存在本机。支持文字、HTML/RTF/RTFD、图片和文件引用。文件记录不备份原文件，最多固定20条。")
         detail.font = .systemFont(ofSize: 11); detail.preferredMaxLayoutWidth = 290
+        detail.widthAnchor.constraint(equalToConstant: 290).isActive = true
         stack.addArrangedSubview(detail)
         stack.addArrangedSubview(button("退出剪贴匣", #selector(quit)))
-        stack.setFrameSize(NSSize(width: 330, height: 470))
-        controller.view = stack
+        stack.setFrameSize(NSSize(width: 330, height: 540))
+        let height = min(540, max(260, (window?.screen?.visibleFrame.height ?? 720) - 100))
+        let scroll = NSScrollView(frame: NSRect(x: 0, y: 0, width: 330, height: height))
+        scroll.hasVerticalScroller = true; scroll.autohidesScrollers = true; scroll.scrollerStyle = .overlay
+        scroll.drawsBackground = true; scroll.backgroundColor = .windowBackgroundColor; scroll.documentView = stack
+        settingsScrollView = scroll
+        resizeSettingsContent()
+        scroll.contentView.scroll(to: NSPoint(x: 0, y: max(0, stack.frame.height - height)))
+        scroll.reflectScrolledClipView(scroll.contentView)
+        return scroll
+    }
+    @objc private func openSettings() {
+        let controller = NSViewController()
+        controller.view = makeSettingsView()
         settingsPopover.contentViewController = controller
         model.showingSettings = true
         settingsPopover.show(relativeTo: settingsButton.bounds, of: settingsButton, preferredEdge: .minY)
     }
-    @objc private func changeHotkey() { if let keys = hotkeyPicker { model.setHotkey(keys.indexOfSelectedItem) } }
-    @objc private func retryHotkey() { model.setHotkey(model.hotkeyWarning?.preset ?? model.hotkeyPreset) }
+    private func resizeSettingsContent() {
+        guard let scroll = settingsScrollView, let stack = scroll.documentView as? NSStackView else { return }
+        let height = max(scroll.contentSize.height, stack.fittingSize.height)
+        if stack.frame.height != height { stack.setFrameSize(NSSize(width: 330, height: height)) }
+    }
+    @objc private func changeHotkey() {
+        if let keys = hotkeyPicker, keys.indexOfSelectedItem > 0 { model.setHotkey(keys.indexOfSelectedItem - 1) }
+    }
+    @objc private func retryHotkey() { model.retryHotkey() }
     @objc private func changeLimit(_ sender: NSPopUpButton) {
         model.setLimit([100, 200, 500][sender.indexOfSelectedItem])
     }
     @objc private func accessibility() { model.openAccessibilitySettings() }
     @objc private func quit() { model.onQuit?() }
-    func popoverDidClose(_ notification: Notification) { model.showingSettings = false }
+    func popoverDidClose(_ notification: Notification) {
+        shortcutRecorder?.cancelRecording()
+        model.showingSettings = false
+    }
 
     static func selfTest() throws {
         weak var releasedWindow: NSWindow?

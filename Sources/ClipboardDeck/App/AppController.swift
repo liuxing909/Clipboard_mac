@@ -9,7 +9,7 @@ final class ClipboardPanel: NSPanel {
 }
 
 @MainActor
-final class AppController: NSObject, NSApplicationDelegate {
+final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var model: AppModel!
     private var panel: ClipboardPanel!
     private var statusItem: NSStatusItem!
@@ -17,6 +17,9 @@ final class AppController: NSObject, NSApplicationDelegate {
     private var keyMonitor: Any?
     private var mouseMonitor: Any?
     private var activationObserver: NSObjectProtocol?
+    private var screenParametersObserver: NSObjectProtocol?
+    private var panelPlacement = PanelPlacement()
+    private var isPositioningPanel = false
     private var targetApplication: NSRunningApplication?
     private var lastExternalApplication: NSRunningApplication?
     private struct PasteRequest: Equatable {
@@ -55,8 +58,8 @@ final class AppController: NSObject, NSApplicationDelegate {
         model.onPaste = { [weak self] entry in self?.paste(entry) }
         model.onDismiss = { [weak self] in self?.dismiss() }
         model.onQuit = { NSApp.terminate(nil) }
-        model.onHotkeyChange = { [weak self] preset in
-            self?.hotkey?.register(preset: preset) ?? .failure(.handlerUnavailable)
+        model.onShortcutChange = { [weak self] shortcut in
+            self?.hotkey?.register(shortcut: shortcut) ?? .failure(.handlerUnavailable)
         }
         installMainMenu()
         lastExternalApplication = NSWorkspace.shared.frontmostApplication
@@ -74,6 +77,9 @@ final class AppController: NSObject, NSApplicationDelegate {
         panel.hasShadow = true
         panel.level = .floating
         panel.hidesOnDeactivate = false
+        panel.isMovable = true
+        panel.isMovableByWindowBackground = false
+        panel.delegate = self
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.contentView = PanelContent.makeView(model: model, legacy: CommandLine.arguments.contains("--demo-legacy"))
 
@@ -98,7 +104,10 @@ final class AppController: NSObject, NSApplicationDelegate {
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
         hotkey = GlobalHotkey()
-        hotkey.onPress = { [weak self] in self?.togglePanel() }
+        hotkey.onPress = { [weak self] in
+            guard let self, !self.model.handleHotkeyWhileRecording() else { return }
+            self.togglePanel()
+        }
         model.activateHotkey()
 
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
@@ -149,6 +158,12 @@ final class AppController: NSObject, NSApplicationDelegate {
             }
         }
 
+        screenParametersObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.constrainVisiblePanelToScreens() }
+        }
+
         model.startMonitoring()
         showPanel()
     }
@@ -165,6 +180,7 @@ final class AppController: NSObject, NSApplicationDelegate {
         if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
         if let mouseMonitor { NSEvent.removeMonitor(mouseMonitor) }
         if let activationObserver { NSWorkspace.shared.notificationCenter.removeObserver(activationObserver) }
+        if let screenParametersObserver { NotificationCenter.default.removeObserver(screenParametersObserver) }
         if let demoRoot { try? FileManager.default.removeItem(at: demoRoot) }
     }
 
@@ -221,14 +237,38 @@ final class AppController: NSObject, NSApplicationDelegate {
         targetApplication =
             front?.processIdentifier == ProcessInfo.processInfo.processIdentifier ? lastExternalApplication : front
         let screen = NSScreen.screens.first(where: { $0.frame.contains(NSEvent.mouseLocation) }) ?? NSScreen.main
-        if let frame = screen?.visibleFrame {
-            panel.setFrameOrigin(NSPoint(x: frame.midX - 208, y: max(frame.minY + 12, frame.midY - 250)))
+        if let frame = panelPlacement.frameForPresentation(
+            size: panel.frame.size, visibleScreens: NSScreen.screens.map(\.visibleFrame),
+            initialScreen: screen?.visibleFrame)
+        {
+            positionPanel(at: frame)
         }
         model.refreshAccessibility()
         model.prepareForPresentation()
         panel.orderFrontRegardless()
         NSApp.activate(ignoringOtherApps: true)
         panel.makeKey()
+    }
+
+    func windowDidMove(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow, window === panel,
+            !isPositioningPanel, panel.isVisible
+        else { return }
+        panelPlacement.rememberMove(to: panel.frame)
+    }
+
+    private func positionPanel(at frame: NSRect) {
+        isPositioningPanel = true
+        defer { isPositioningPanel = false }
+        panel.setFrameOrigin(frame.origin)
+    }
+
+    private func constrainVisiblePanelToScreens() {
+        guard let panel, panel.isVisible else { return }
+        let constrained = PanelPlacement.constrained(panel.frame, to: NSScreen.screens.map(\.visibleFrame))
+        guard constrained.origin != panel.frame.origin else { return }
+        positionPanel(at: constrained)
+        panelPlacement.rememberMove(to: constrained)
     }
 
     private func dismiss() {
@@ -241,6 +281,7 @@ final class AppController: NSObject, NSApplicationDelegate {
             pendingPaste = nil
             model.cancelPreparedCopy()
         }
+        model.isRecordingShortcut = false
         panel.orderOut(nil)
         model.setPanelVisible(false)
     }
@@ -308,5 +349,54 @@ final class AppController: NSObject, NSApplicationDelegate {
             down.post(tap: .cghidEventTap)
             up.post(tap: .cghidEventTap)
         }
+    }
+}
+
+/// Session-only positioning: first open follows the pointer; a moved panel keeps its position.
+struct PanelPlacement {
+    private(set) var rememberedFrame: NSRect?
+
+    mutating func rememberMove(to frame: NSRect) { rememberedFrame = frame }
+
+    func frameForPresentation(size: NSSize, visibleScreens: [NSRect], initialScreen: NSRect?) -> NSRect? {
+        if let rememberedFrame {
+            return Self.constrained(NSRect(origin: rememberedFrame.origin, size: size), to: visibleScreens)
+        }
+        guard let screen = initialScreen ?? visibleScreens.first else { return nil }
+        let proposed = NSRect(
+            x: screen.midX - size.width / 2, y: max(screen.minY + 12, screen.midY - 250),
+            width: size.width, height: size.height)
+        return Self.constrained(proposed, to: [screen])
+    }
+
+    static func constrained(_ frame: NSRect, to visibleScreens: [NSRect]) -> NSRect {
+        let screens = visibleScreens.filter { $0.width > 0 && $0.height > 0 }
+        guard
+            let screen = screens.max(by: { lhs, rhs in
+                let leftArea = intersectionArea(frame, lhs), rightArea = intersectionArea(frame, rhs)
+                if leftArea != rightArea { return leftArea < rightArea }
+                return distanceSquared(from: frame, to: lhs) > distanceSquared(from: frame, to: rhs)
+            })
+        else { return frame }
+        let insetX: CGFloat = screen.width > 24 ? 12 : 0
+        let insetY: CGFloat = screen.height > 24 ? 12 : 0
+        let usable = screen.insetBy(dx: insetX, dy: insetY)
+        // On very small displays retain the title at the top so the panel remains draggable.
+        let x = frame.width > usable.width ? usable.minX : min(max(frame.minX, usable.minX), usable.maxX - frame.width)
+        let y =
+            frame.height > usable.height
+            ? usable.maxY - frame.height : min(max(frame.minY, usable.minY), usable.maxY - frame.height)
+        return NSRect(origin: NSPoint(x: x, y: y), size: frame.size)
+    }
+
+    private static func intersectionArea(_ lhs: NSRect, _ rhs: NSRect) -> CGFloat {
+        let intersection = lhs.intersection(rhs)
+        return intersection.isNull ? 0 : intersection.width * intersection.height
+    }
+
+    private static func distanceSquared(from frame: NSRect, to screen: NSRect) -> CGFloat {
+        let dx = max(screen.minX - frame.midX, 0, frame.midX - screen.maxX)
+        let dy = max(screen.minY - frame.midY, 0, frame.midY - screen.maxY)
+        return dx * dx + dy * dy
     }
 }

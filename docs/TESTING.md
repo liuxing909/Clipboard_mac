@@ -1,6 +1,6 @@
 # 测试与验证范围
 
-当前应用版本为 **0.1.8**。截至 2026-11-08，38 项核心测试、17 组隔离自检通过，Intel 与 Apple Silicon 两个架构编译通过。运行测试在现代 macOS 上完成，不能代替 macOS 10.15 实机验证。
+当前应用版本为 **0.1.9**。截至 2026-11-17，38 项核心测试、20 组隔离自检通过，Intel 与 Apple Silicon 两个架构编译通过。本次本地运行环境为 macOS 26.3.2，不能代替 macOS 10.15 实机或报告问题的 macOS 15 电脑验证。
 
 本文记录实际覆盖范围，不把合成格式测试等同于 Word、WPS 或其他应用的完整窗口验证。
 
@@ -72,7 +72,7 @@ dist/剪贴匣.app/Contents/MacOS/ClipboardDeck --stress-test 20 format-fuzz
 
 ## 状态、调度与资源验证
 
-17 组应用隔离自检还覆盖以下行为：
+20 组应用隔离自检还覆盖以下行为：
 
 | 范围 | 检查内容 |
 | --- | --- |
@@ -81,6 +81,8 @@ dist/剪贴匣.app/Contents/MacOS/ClipboardDeck --stress-test 20 format-fuzz
 | 粘贴生命周期 | 新复制、应用切换、面板关闭或新粘贴使旧操作失效；准备完成后再次检查目标与剪贴板版本。 |
 | 等待最新复制时的选择 | 压力恢复或队列满尚未采集时回车不会误粘贴旧记录；用户明确选择旧记录仍可操作；新内容到达后选择更新，排除或失败后结束等待。 |
 | 模拟快捷键 | 冲突保留旧键及设置、成功替换、启动失败提示、同一组合键重试、事件监听初始化失败后恢复。 |
+| 自定义快捷键 | 键码与修饰符传递、旧设置迁移、自定义设置保存与重启恢复、无效设置回退；录制松键提交、Esc/Tab/失焦清理、当前注册组合回交及长按重复事件过滤。 |
+| 窗口拖动 | 真实 SwiftUI / AppKit 内容视图的标题和空白命中，按钮/搜索/列表保持独立；模拟拖动事件路由、重开保留位置及 1,000 组多屏边界。事件路由使用替身，不启动真实鼠标拖动。 |
 | 轮询 | 幂等启停、停止后无回调、重启、释放；注入轮询器触发实际采集。 |
 | 缓存与缩略图 | 成本及数量预算、LRU 淘汰、替换、超大项和引用释放；图片比例、旋转、不放大小图、列表与预览用途隔离。 |
 | 后台任务 | 非主线程解码、单并发、等待上限、同 key 去重、取消后的迟到结果、结果顺序、压力暂停与恢复、失败抑制。 |
@@ -107,6 +109,8 @@ dist/剪贴匣.app/Contents/MacOS/ClipboardDeck --stress-test 20 format-fuzz
 .build/release/ClipboardDeck --render-preview .build/preview.png
 .build/release/ClipboardDeck --render-legacy-preview .build/legacy-preview.png
 .build/release/ClipboardDeck --render-hotkey-warning .build/hotkey-warning.png
+.build/release/ClipboardDeck --render-settings-preview .build/settings-preview.png
+.build/release/ClipboardDeck --render-legacy-settings-preview .build/legacy-settings-preview.png
 ```
 
 交互式演示使用临时示例数据，不监控或修改系统通用剪贴板，退出后删除演示数据：
@@ -123,6 +127,7 @@ open dist/剪贴匣.app --args --demo-legacy
 - Intel macOS 10.15 上的启动、界面、权限、快捷键、格式和安装更新流程。
 - Word、WPS、Pages、浏览器与 Finder 的真实窗口复制粘贴组合。
 - 辅助功能授权前后、跨应用焦点恢复及全局快捷键实际触发。
+- 报告问题的 macOS 15 / Apple Silicon 电脑上的真实鼠标拖动、设置弹窗录制与第三方快捷键占用。系统或第三方程序可能先行处理组合键，应用收不到时无法录入或提示该次冲突。
 - 复杂分页、公式、OLE 私有对象与跨应用精确排版；这些尚未纳入稳定支持范围。
 
 报告问题时请注明 macOS 和应用版本、复制来源、粘贴目标及复现步骤，优先提供不含隐私的最小样例。格式原字节一致和系统读取端通过不能替代目标应用的实际显示检查。

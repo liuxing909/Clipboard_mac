@@ -1,4 +1,5 @@
 import AppKit
+import Carbon
 import ClipboardCore
 
 @MainActor
@@ -91,6 +92,8 @@ enum AppModelSelfTests {
             model.hotkeyPreset == 1 && defaults.integer(forKey: "hotkeyPreset") == 1 && registrations == 1
                 && model.hotkeyWarning == nil && model.activeHotkeyPreset == 1,
             "only a successful changed shortcut is persisted")
+        try checkCustomShortcutSettings(directory: directory.appendingPathComponent("shortcut-settings"))
+        try checkShortcutRecorder(model)
         try checkFilteringAndResources(model)
         try checkFormatFiltering(model)
         try checkBackgroundOperations(directory: directory.appendingPathComponent("background"), defaults: defaults)
@@ -111,6 +114,143 @@ enum AppModelSelfTests {
         print(
             "PASS: immediate capture / startup baseline / pause-resume / own-copy suppression / shortcut settings rollback"
         )
+    }
+
+    private static func checkCustomShortcutSettings(directory: URL) throws {
+        let suite = "ClipboardDeck-shortcut-self-test-" + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let board = NSPasteboard.withUniqueName()
+        defer { board.releaseGlobally() }
+        func makeModel(_ name: String) -> AppModel {
+            AppModel(
+                directory: directory.appendingPathComponent(name), pasteboard: board, defaults: defaults,
+                poller: ManualClipboardPoller(), thumbnails: ThumbnailPipeline(observesMemoryPressure: false),
+                processing: ClipboardWorkScheduler(observesMemoryPressure: false), frontmostApplication: { nil })
+        }
+
+        defaults.set(2, forKey: "hotkeyPreset")
+        let model = makeModel("legacy")
+        try check(
+            model.shortcut == HotkeyPresets.shortcuts[2] && defaults.data(forKey: HotkeyShortcut.storageKey) == nil,
+            "legacy preset loads without claiming registration or writing settings")
+        model.onShortcutChange = { _ in .success(()) }
+        model.activateHotkey()
+        let savedLegacy = defaults.data(forKey: HotkeyShortcut.storageKey)
+        try check(
+            savedLegacy != nil && model.activeShortcut == model.shortcut,
+            "legacy preset migrates only after successful activation")
+
+        let custom = HotkeyShortcut(keyCode: UInt32(kVK_ANSI_K), modifiers: UInt32(cmdKey | shiftKey))
+        model.onShortcutChange = { _ in .failure(.occupied) }
+        model.setCustomHotkey(custom)
+        try check(
+            model.shortcut == HotkeyPresets.shortcuts[2] && model.activeShortcut == model.shortcut
+                && defaults.data(forKey: HotkeyShortcut.storageKey) == savedLegacy
+                && model.hotkeyWarning?.shortcut == custom
+                && model.hotkeyWarning?.message.contains("已被占用") == true,
+            "failed custom registration preserves the displayed, active and persisted shortcut")
+        model.onShortcutChange = { _ in .success(()) }
+        model.retryHotkey()
+        try check(
+            model.shortcut == custom && model.activeShortcut == custom && model.hotkeyPreset == -1
+                && model.isHotkeyAvailable && model.hotkeyWarning == nil,
+            "retry registers the rejected custom key and clears its warning")
+
+        let restarted = makeModel("restarted")
+        try check(
+            restarted.shortcut == custom && !restarted.isHotkeyAvailable && restarted.hotkeyPreset == -1,
+            "restart restores the custom key but awaits actual registration")
+        var restored: HotkeyShortcut?
+        restarted.onShortcutChange = {
+            restored = $0; return .success(())
+        }
+        restarted.activateHotkey()
+        try check(restored == custom && restarted.isHotkeyAvailable, "startup registers the saved custom key")
+        let savedCustom = defaults.data(forKey: HotkeyShortcut.storageKey)
+        restarted.setCustomHotkey(HotkeyShortcut(keyCode: UInt32(kVK_ANSI_K), modifiers: 0))
+        try check(
+            restarted.hotkeyWarning?.failure == .invalidShortcut && restarted.shortcut == custom
+                && defaults.data(forKey: HotkeyShortcut.storageKey) == savedCustom,
+            "invalid custom key cannot overwrite the saved working shortcut")
+
+        defaults.set(1, forKey: "hotkeyPreset")
+        defaults.set(Data([0, 255, 0]), forKey: HotkeyShortcut.storageKey)
+        try check(
+            makeModel("corrupt").shortcut == HotkeyPresets.shortcuts[1],
+            "damaged custom data safely falls back to the legacy Option-V preset")
+        let invalidData = try JSONEncoder().encode(HotkeyShortcut(keyCode: .max, modifiers: UInt32(cmdKey)))
+        defaults.set(invalidData, forKey: HotkeyShortcut.storageKey)
+        defaults.set(-1, forKey: "hotkeyPreset")
+        try check(
+            makeModel("invalid").shortcut == HotkeyPresets.shortcuts[0],
+            "decoded but unsupported key codes and invalid legacy indices fall back to the default")
+        defaults.set("wrong storage type", forKey: HotkeyShortcut.storageKey)
+        try check(
+            makeModel("wrong-type").shortcut == HotkeyPresets.shortcuts[0],
+            "incorrect preference types cannot prevent startup")
+        print("PASS: custom shortcut migration / conflict rollback / retry / restart / corrupt preference fallback")
+    }
+
+    private static func checkShortcutRecorder(_ model: AppModel) throws {
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 360, height: 100),
+            styleMask: [.titled], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        let recorder = ShortcutRecorderControl(frame: NSRect(x: 20, y: 20, width: 260, height: 30))
+        recorder.bind(to: model)
+        window.contentView?.addSubview(recorder)
+        defer { recorder.cancelRecording(); window.close() }
+        func event(_ type: NSEvent.EventType, key: Int, modifiers: NSEvent.ModifierFlags = []) -> NSEvent {
+            NSEvent.keyEvent(
+                with: type, location: .zero, modifierFlags: modifiers, timestamp: 0,
+                windowNumber: window.windowNumber, context: nil, characters: "",
+                charactersIgnoringModifiers: "", isARepeat: false, keyCode: UInt16(key))!
+        }
+
+        var attempts: [HotkeyShortcut] = []
+        model.onShortcutChange = {
+            attempts.append($0); return .success(())
+        }
+        recorder.beginRecording()
+        try check(recorder.isRecording && model.isRecordingShortcut, "recording marks global shortcuts suppressed")
+        recorder.capture(event(.keyDown, key: kVK_ANSI_K))
+        try check(attempts.isEmpty && recorder.isRecording, "unmodified text does not become a shortcut")
+        recorder.capture(event(.keyDown, key: kVK_ANSI_K, modifiers: [.command, .shift]))
+        try check(attempts.isEmpty && recorder.isRecording, "candidate waits for release to avoid repeat clicks")
+        recorder.capture(event(.keyUp, key: kVK_ANSI_K))
+        try check(
+            attempts.count == 1 && model.shortcut.label == "⇧⌘K" && !recorder.isRecording
+                && !model.isRecordingShortcut && recorder.shortcut == model.shortcut,
+            "release commits exactly once and restores global shortcut handling")
+        try check(
+            !recorder.capture(event(.keyUp, key: kVK_ANSI_K)) && attempts.count == 1,
+            "a duplicate key-up cannot re-enter recording or save twice")
+
+        recorder.beginRecording()
+        try check(
+            model.handleHotkeyWhileRecording() && !recorder.isRecording && attempts.count == 1,
+            "the active Carbon shortcut is routed back to the recorder without re-registering")
+        try check(!model.handleHotkeyWhileRecording(), "ordinary global hotkeys are available after recording")
+        recorder.beginRecording()
+        recorder.capture(event(.keyDown, key: kVK_Escape))
+        try check(
+            !recorder.isRecording && !model.isRecordingShortcut && attempts.count == 1,
+            "Escape cancels without changing the shortcut")
+        recorder.beginRecording()
+        recorder.capture(event(.keyDown, key: kVK_Tab))
+        try check(!recorder.isRecording && !model.isRecordingShortcut, "Tab ends recording")
+        recorder.beginRecording()
+        window.makeFirstResponder(nil)
+        try check(!recorder.isRecording && !model.isRecordingShortcut, "focus loss ends recording")
+        recorder.beginRecording()
+        NotificationCenter.default.post(name: NSWindow.didResignKeyNotification, object: window)
+        try check(!recorder.isRecording && !model.isRecordingShortcut, "window deactivation ends recording")
+        recorder.beginRecording()
+        recorder.removeFromSuperview()
+        try check(!recorder.isRecording && !model.isRecordingShortcut, "removing settings releases capture state")
+        model.onShortcutChange = nil
+        print("PASS: shortcut recorder release / no repeat capture / active-key routing / Escape / Tab / focus cleanup")
     }
 
     private static func checkFilteringAndResources(_ model: AppModel) throws {

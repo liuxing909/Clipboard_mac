@@ -107,15 +107,18 @@ struct HistoryPanelView: View {
 
     private var header: some View {
         HStack(spacing: 11) {
-            Image(systemName: "doc.on.clipboard.fill")
-                .font(.system(size: 19, weight: .medium)).foregroundStyle(accent)
-                .frame(width: 38, height: 38)
-                .background(accent.opacity(0.11), in: RoundedRectangle(cornerRadius: 11))
-            VStack(alignment: .leading, spacing: 3) {
-                Text("剪贴匣").font(.system(size: 20, weight: .semibold))
-                Text("随手复制，随时找回").font(.system(size: 11)).foregroundStyle(.secondary)
-            }
-            Spacer()
+            HStack(spacing: 11) {
+                Image(systemName: "doc.on.clipboard.fill")
+                    .font(.system(size: 19, weight: .medium)).foregroundStyle(accent)
+                    .frame(width: 38, height: 38)
+                    .background(accent.opacity(0.11), in: RoundedRectangle(cornerRadius: 11))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("剪贴匣").font(.system(size: 20, weight: .semibold))
+                    Text("随手复制，随时找回").font(.system(size: 11)).foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 0)
+            }.frame(maxWidth: .infinity, alignment: .leading)
+                .overlay(WindowDragArea())
             Button {
                 model.isPaused.toggle()
             } label: {
@@ -238,53 +241,66 @@ struct HistoryPanelView: View {
         }.font(.system(size: 10)).padding(.horizontal, 18).frame(height: 43)
     }
 
-    private var settings: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("设置").font(.headline)
-                Spacer()
-                Text(
-                    "v" + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.1.8")
-                )
-                .font(.caption).foregroundStyle(.secondary)
-            }
-            Picker("呼出快捷键", selection: Binding(get: { model.hotkeyPreset }, set: { model.setHotkey($0) })) {
-                Text("⌃⌥V（Control + Option + V）").tag(0)
-                Text("⌥V（Option + V）").tag(1)
-                Text("⌃⇧V（Control + Shift + V）").tag(2)
-            }
-            if let warning = model.hotkeyWarning {
-                VStack(alignment: .leading, spacing: 8) {
-                    Label(warning.title, systemImage: "exclamationmark.triangle.fill")
-                        .font(.caption.weight(.semibold)).foregroundStyle(.orange)
-                    Text(warning.message).font(.caption).fixedSize(horizontal: false, vertical: true)
-                    Button("重试 " + HotkeyPresets.label(warning.preset)) { model.setHotkey(warning.preset) }
-                        .font(.caption)
-                }.padding(10).background(Color.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
-            }
-            Picker("保留记录", selection: Binding(get: { model.historyLimit }, set: { model.setLimit($0) })) {
-                Text("100 条").tag(100); Text("200 条").tag(200); Text("500 条").tag(500)
-            }
-            Toggle("暂停记录", isOn: $model.isPaused)
-            Divider()
-            Label("记录只保存在这台 Mac", systemImage: "internaldrive")
-                .font(.system(size: 12, weight: .medium))
-            Text("支持文字、HTML/RTF/RTFD 富文本、图片和 Finder 文件；搜索内容、文件名与来源应用。最多固定 20 条，原始内容预算 100 MiB。")
-                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            Text("文件记录只保存位置，不备份原文件；富文本效果取决于粘贴目标支持的格式。")
-                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            Text("已标记为敏感或临时的剪贴板内容会被忽略。无法识别所有密码，请在处理敏感内容时暂停记录。")
-                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            if !model.accessibilityGranted {
-                Button("打开辅助功能设置…") { model.openAccessibilitySettings() }
-            }
-            Divider()
-            HStack {
-                Text("剪贴匣 · ClipboardDeck").font(.caption).foregroundStyle(.secondary)
-                Spacer()
-                Button("退出") { model.onQuit?() }
-            }
-        }.padding(20).frame(width: 330)
+    var settings: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Text("设置").font(.headline)
+                    Spacer()
+                    Text(
+                        "v"
+                            + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+                                ?? "0.1.9")
+                    )
+                    .font(.caption).foregroundStyle(.secondary)
+                }
+                Text("呼出快捷键").font(.caption)
+                ShortcutRecorderView(model: model).frame(height: 30)
+                Text("点击上方后按组合键，Esc 取消。需包含 ⌃、⌥ 或 ⌘。系统直接处理的组合可能无法录入，请换一组。")
+                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                Picker(
+                    "快捷键预设",
+                    selection: Binding(get: { model.hotkeyPreset }, set: { if $0 >= 0 { model.setHotkey($0) } })
+                ) {
+                    Text("自定义").tag(-1)
+                    Text("⌃⌥V（Control + Option + V）").tag(0)
+                    Text("⌥V（Option + V）").tag(1)
+                    Text("⌃⇧V（Control + Shift + V）").tag(2)
+                }
+                if let warning = model.hotkeyWarning {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label(warning.title, systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption.weight(.semibold)).foregroundStyle(.orange)
+                        Text(warning.message).font(.caption).fixedSize(horizontal: false, vertical: true)
+                        Button("重试 " + warning.shortcut.label) { model.retryHotkey() }
+                            .font(.caption)
+                    }.padding(10).background(Color.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+                }
+                Picker("保留记录", selection: Binding(get: { model.historyLimit }, set: { model.setLimit($0) })) {
+                    Text("100 条").tag(100); Text("200 条").tag(200); Text("500 条").tag(500)
+                }
+                Toggle("暂停记录", isOn: $model.isPaused)
+                Divider()
+                Label("记录只保存在这台 Mac", systemImage: "internaldrive")
+                    .font(.system(size: 12, weight: .medium))
+                Text("支持文字、HTML/RTF/RTFD 富文本、图片和 Finder 文件；搜索内容、文件名与来源应用。最多固定 20 条，原始内容预算 100 MiB。")
+                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                Text("文件记录只保存位置，不备份原文件；富文本效果取决于粘贴目标支持的格式。")
+                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                Text("已标记为敏感或临时的剪贴板内容会被忽略。无法识别所有密码，请在处理敏感内容时暂停记录。")
+                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                if !model.accessibilityGranted {
+                    Button("打开辅助功能设置…") { model.openAccessibilitySettings() }
+                }
+                Divider()
+                HStack {
+                    Text("剪贴匣 · ClipboardDeck").font(.caption).foregroundStyle(.secondary)
+                    Spacer()
+                    Button("退出") { model.onQuit?() }
+                }
+            }.padding(20).frame(maxWidth: .infinity, alignment: .leading)
+        }.frame(width: 330, height: min(540, max(260, (NSScreen.main?.visibleFrame.height ?? 720) - 100)))
+            .background(Color(nsColor: .windowBackgroundColor))
     }
 }
 

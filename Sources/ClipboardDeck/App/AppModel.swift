@@ -56,6 +56,9 @@ final class AppModel: ObservableObject {
     @Published var presentationID = UUID()
     @Published var hotkeyPreset = 0
     @Published private(set) var activeHotkeyPreset: Int?
+    @Published private(set) var shortcut = HotkeyPresets.shortcuts[0]
+    @Published private(set) var activeShortcut: HotkeyShortcut?
+    @Published var isRecordingShortcut = false
     @Published private(set) var hotkeyWarning: HotkeyWarning?
     @Published var historyLimit = 200
     @Published private(set) var isPanelVisible = true
@@ -103,6 +106,8 @@ final class AppModel: ObservableObject {
     var onDismiss: (() -> Void)?
     var onQuit: (() -> Void)?
     var onHotkeyChange: ((Int) -> Result<Void, HotkeyFailure>)?
+    var onShortcutChange: ((HotkeyShortcut) -> Result<Void, HotkeyFailure>)?
+    var onRecordedActiveShortcut: ((HotkeyShortcut) -> Void)?
 
     init(
         directory: URL, isPreview: Bool = false, pasteboard: NSPasteboard? = nil,
@@ -141,7 +146,8 @@ final class AppModel: ObservableObject {
             self.thumbnailRevision &+= 1
         }
         if !isPreview {
-            hotkeyPreset = min(2, max(0, defaults.integer(forKey: "hotkeyPreset")))
+            shortcut = HotkeyShortcut.load(from: defaults)
+            hotkeyPreset = HotkeyPresets.shortcuts.firstIndex(of: shortcut) ?? -1
             let savedLimit = defaults.integer(forKey: "historyLimit")
             historyLimit = [100, 200, 500].contains(savedLimit) ? savedLimit : 200
         }
@@ -169,8 +175,8 @@ final class AppModel: ObservableObject {
         return result
     }
 
-    var shortcutLabel: String { HotkeyPresets.label(hotkeyPreset) }
-    var isHotkeyAvailable: Bool { isPreview || activeHotkeyPreset != nil }
+    var shortcutLabel: String { shortcut.label }
+    var isHotkeyAvailable: Bool { isPreview || activeShortcut != nil }
     var selectedEntry: ClipEntry? {
         let items = visibleEntries
         return items.first(where: { $0.id == selectedID }) ?? items.first
@@ -475,27 +481,58 @@ final class AppModel: ObservableObject {
     }
 
     func setHotkey(_ value: Int) {
-        guard HotkeyPresets.labels.indices.contains(value) else { return }
-        if value == hotkeyPreset, activeHotkeyPreset == value {
+        guard HotkeyPresets.shortcuts.indices.contains(value) else { return }
+        setCustomHotkey(HotkeyPresets.shortcuts[value])
+    }
+
+    func setCustomHotkey(_ value: HotkeyShortcut) {
+        if value == shortcut, activeShortcut == value {
             hotkeyWarning = nil
             return
         }
         applyHotkey(value)
     }
 
-    func activateHotkey() { applyHotkey(hotkeyPreset) }
+    func activateHotkey() { applyHotkey(shortcut) }
+    func retryHotkey() { setCustomHotkey(hotkeyWarning?.shortcut ?? shortcut) }
 
-    private func applyHotkey(_ value: Int) {
-        let result: Result<Void, HotkeyFailure> =
-            isPreview ? .success(()) : (onHotkeyChange?(value) ?? .failure(.handlerUnavailable))
+    /// Carbon may consume our currently registered key before AppKit's recorder sees it.
+    /// Send that key back to the recorder without dropping the working global registration.
+    func handleHotkeyWhileRecording() -> Bool {
+        guard isRecordingShortcut else { return false }
+        onRecordedActiveShortcut?(activeShortcut ?? shortcut)
+        return true
+    }
+
+    private func applyHotkey(_ value: HotkeyShortcut) {
+        guard value.isValid else {
+            hotkeyWarning = HotkeyWarning(shortcut: value, failure: .invalidShortcut, retainedShortcut: activeShortcut)
+            return
+        }
+        let preset = HotkeyPresets.shortcuts.firstIndex(of: value)
+        let result: Result<Void, HotkeyFailure>
+        if isPreview {
+            result = .success(())
+        } else if let onShortcutChange {
+            result = onShortcutChange(value)
+        } else if let preset, let onHotkeyChange {
+            result = onHotkeyChange(preset)
+        } else {
+            result = .failure(.handlerUnavailable)
+        }
         switch result {
         case .success:
-            activeHotkeyPreset = value
-            hotkeyPreset = value
+            activeShortcut = value
+            shortcut = value
+            activeHotkeyPreset = preset
+            hotkeyPreset = preset ?? -1
             hotkeyWarning = nil
-            if !isPreview { defaults.set(value, forKey: "hotkeyPreset") }
+            if !isPreview, let data = try? JSONEncoder().encode(value) {
+                defaults.set(data, forKey: HotkeyShortcut.storageKey)
+                defaults.set(preset ?? -1, forKey: "hotkeyPreset")
+            }
         case .failure(let error):
-            hotkeyWarning = HotkeyWarning(preset: value, failure: error, retainedPreset: activeHotkeyPreset)
+            hotkeyWarning = HotkeyWarning(shortcut: value, failure: error, retainedShortcut: activeShortcut)
         }
     }
 

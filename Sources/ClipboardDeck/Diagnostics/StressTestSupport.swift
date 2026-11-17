@@ -55,7 +55,9 @@ enum StressTestSupport {
         case .formats: try FormatSelfTests.run()
         case .formatFuzz: try FormatStressSelfTests.run()
         case .office: try OfficeFormatSelfTests.run()
-        case .ui: try LegacyHistoryView.selfTest()
+        case .ui:
+            try LegacyHistoryView.selfTest()
+            try WindowInteractionSelfTests.run()
         case .worker: try ClipboardWorkSchedulerSelfTests.run()
         case .thumbnails: try ThumbnailPipelineSelfTests.run()
         case .hotkeys: try HotkeySelfTests.run()

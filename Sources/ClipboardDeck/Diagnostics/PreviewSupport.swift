@@ -65,7 +65,9 @@ enum PreviewSupport {
         model.selectedID = model.visibleEntries.first(where: { !$0.isPinned })?.id
     }
 
-    static func render(to destination: URL, hotkeyWarning: Bool = false, legacy: Bool = false) throws {
+    static func render(to destination: URL, hotkeyWarning: Bool = false, legacy: Bool = false, settings: Bool = false)
+        throws
+    {
         let temporary = FileManager.default.temporaryDirectory.appendingPathComponent(
             "ClipboardDeck-preview-" + UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: temporary) }
@@ -82,8 +84,20 @@ enum PreviewSupport {
             model.onHotkeyChange = { _ in .failure(.occupied) }
             model.setHotkey(1)
         }
-        let view = PanelContent.makeView(model: model, legacy: legacy)
-        let size = NSSize(width: 416, height: 608)
+        let panelContent = PanelContent.makeView(model: model, legacy: legacy)
+        let view: NSView
+        if settings {
+            if let native = panelContent as? LegacyHistoryView {
+                view = native.makeSettingsView()
+            } else if #available(macOS 14.0, *) {
+                view = NSHostingView(rootView: HistoryPanelView(model: model).settings)
+            } else {
+                throw TestError.failed("unsupported settings preview")
+            }
+        } else {
+            view = panelContent
+        }
+        let size = settings ? NSSize(width: 330, height: 540) : NSSize(width: 416, height: 608)
         view.frame = NSRect(origin: .zero, size: size)
         let window = NSWindow(contentRect: view.frame, styleMask: [.borderless], backing: .buffered, defer: false)
         window.appearance = NSAppearance(named: .aqua)
@@ -95,6 +109,7 @@ enum PreviewSupport {
         guard let data = rep.representation(using: .png, properties: [:]) else { throw HistoryError.invalidImage }
         try data.write(to: destination, options: .atomic)
         window.orderOut(nil)
+        withExtendedLifetime(panelContent) {}
     }
 
     static func makeIcon(to destination: URL) throws {
@@ -176,6 +191,7 @@ enum PreviewSupport {
         try ThumbnailPipelineSelfTests.run()
         try ClipboardWorkSchedulerSelfTests.run()
         try LegacyHistoryView.selfTest()
+        try WindowInteractionSelfTests.run()
     }
 
     enum TestError: Error { case failed(String) }
