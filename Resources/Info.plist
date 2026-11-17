@@ -6,8 +6,8 @@
     <key>CFBundleName</key><string>剪贴匣</string>
     <key>CFBundleDisplayName</key><string>剪贴匣</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleShortVersionString</key><string>0.1.9</string>
-    <key>CFBundleVersion</key><string>10</string>
+    <key>CFBundleShortVersionString</key><string>0.1.10</string>
+    <key>CFBundleVersion</key><string>11</string>
     <key>CFBundleIconFile</key><string>AppIcon</string>
     <key>LSMinimumSystemVersion</key><string>10.15</string>
     <key>LSMinimumSystemVersionByArchitecture</key><dict>

@@ -41,7 +41,10 @@ final class ShortcutRecorderControl: NSButton {
             model?.onRecordedActiveShortcut =
                 recording
                 ? { [weak self] shortcut in
-                    self?.finishRecording(shortcut)
+                    // Match the local-event path: a second key cannot replace the first
+                    // candidate while the user is still holding it down.
+                    guard let self, self.pendingShortcut == nil || self.pendingShortcut == shortcut else { return }
+                    self.finishRecording(shortcut)
                 } : nil
         }
     }

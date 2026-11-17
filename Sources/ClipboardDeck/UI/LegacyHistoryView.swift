@@ -30,6 +30,7 @@ final class LegacyHistoryView: NSView, NSTableViewDataSource, NSTableViewDelegat
     private let settingsPopover = NSPopover()
     private var subscription: AnyCancellable?
     private var settingsWarning: NSTextField?
+    private var settingsPauseButton: NSButton?
     private var hotkeyPicker: NSPopUpButton?
     private var shortcutRecorder: ShortcutRecorderControl?
     private var settingsScrollView: NSScrollView?
@@ -150,6 +151,7 @@ final class LegacyHistoryView: NSView, NSTableViewDataSource, NSTableViewDelegat
         ].compactMap { $0 }.joined(separator: "\n")
         message.isHidden = message.stringValue.isEmpty
         pause.title = model.isPaused ? "继续记录" : "暂停"
+        settingsPauseButton?.title = model.isPaused ? "继续记录" : "暂停记录"
         footer.stringValue =
             "\(model.isHotkeyAvailable ? model.shortcutLabel : "快捷键未启用")  ·  ↑↓ 选择  ↵ 粘贴  ⌘↵ 复制  ·  \(rows.count) 条"
         filter.selectItem(at: ClipFilter.allCases.firstIndex(of: model.filter) ?? 0)
@@ -268,6 +270,8 @@ final class LegacyHistoryView: NSView, NSTableViewDataSource, NSTableViewDelegat
         title.font = .boldSystemFont(ofSize: 16); stack.addArrangedSubview(title)
         let keys = NSPopUpButton()
         keys.addItems(withTitles: ["自定义"] + HotkeyPresets.labels); keys.selectItem(at: model.hotkeyPreset + 1)
+        keys.autoenablesItems = false
+        keys.item(at: 0)?.isEnabled = false
         keys.target = self; keys.action = #selector(changeHotkey)
         stack.addArrangedSubview(NSTextField(labelWithString: "呼出快捷键"))
         let recorder = ShortcutRecorderControl()
@@ -289,7 +293,8 @@ final class LegacyHistoryView: NSView, NSTableViewDataSource, NSTableViewDelegat
         limit.selectItem(at: [100, 200, 500].firstIndex(of: model.historyLimit) ?? 1)
         limit.target = self; limit.action = #selector(changeLimit(_:))
         stack.addArrangedSubview(NSTextField(labelWithString: "保留记录")); stack.addArrangedSubview(limit)
-        stack.addArrangedSubview(button(model.isPaused ? "继续记录" : "暂停记录", #selector(togglePause)))
+        let pauseButton = button(model.isPaused ? "继续记录" : "暂停记录", #selector(togglePause))
+        stack.addArrangedSubview(pauseButton); settingsPauseButton = pauseButton
         stack.addArrangedSubview(button("开启辅助功能以自动粘贴…", #selector(accessibility)))
         let detail = NSTextField(wrappingLabelWithString: "记录只保存在本机。支持文字、HTML/RTF/RTFD、图片和文件引用。文件记录不备份原文件，最多固定20条。")
         detail.font = .systemFont(ofSize: 11); detail.preferredMaxLayoutWidth = 290
@@ -337,11 +342,21 @@ final class LegacyHistoryView: NSView, NSTableViewDataSource, NSTableViewDelegat
         weak var releasedWindow: NSWindow?
         weak var releasedView: LegacyHistoryView?
         weak var releasedModel: AppModel?
+        weak var releasedSettings: NSView?
+        weak var releasedSettingsWindow: NSWindow?
+        weak var releasedRecorder: ShortcutRecorderControl?
         try autoreleasepool {
             let root = FileManager.default.temporaryDirectory.appendingPathComponent(
                 "ClipboardDeck-legacy-ui-" + UUID().uuidString)
-            defer { try? FileManager.default.removeItem(at: root) }
-            let model = AppModel(directory: root, isPreview: true)
+            let suite = "ClipboardDeck-legacy-ui-" + UUID().uuidString
+            guard let defaults = UserDefaults(suiteName: suite) else {
+                throw PreviewSupport.TestError.failed("legacy UI: isolated settings")
+            }
+            defer {
+                defaults.removePersistentDomain(forName: suite)
+                try? FileManager.default.removeItem(at: root)
+            }
+            let model = AppModel(directory: root, isPreview: true, defaults: defaults)
             releasedModel = model
             try PreviewSupport.populate(model)
             let view = LegacyHistoryView(model: model)
@@ -377,12 +392,80 @@ final class LegacyHistoryView: NSView, NSTableViewDataSource, NSTableViewDelegat
             try check(SelfTestWait.until { view.rows.isEmpty }, "hidden panel releases rows")
             model.prepareForPresentation()
             try check(SelfTestWait.until { view.rows.count == 4 }, "reopen restores rows")
+            let settingsWindow = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 330, height: 540),
+                styleMask: [.borderless], backing: .buffered, defer: false)
+            settingsWindow.isReleasedWhenClosed = false
+            releasedSettingsWindow = settingsWindow
+            defer { settingsWindow.orderOut(nil); settingsWindow.contentView = nil }
+            weak var previousSettings: NSView?
+            weak var previousRecorder: ShortcutRecorderControl?
+            for cycle in 0..<12 {
+                try autoreleasepool {
+                    previousSettings = releasedSettings
+                    previousRecorder = releasedRecorder
+                    let settings = view.makeSettingsView()
+                    releasedSettings = settings
+                    settingsWindow.contentView = settings
+                    settings.layoutSubtreeIfNeeded()
+                    try check(
+                        view.hotkeyPicker?.item(at: 0)?.isEnabled == false
+                            && view.hotkeyPicker?.autoenablesItems == false,
+                        "custom shortcut menu item is display-only; recording has its own control")
+                    guard let recorder = view.shortcutRecorder else {
+                        throw PreviewSupport.TestError.failed("legacy UI: settings recorder")
+                    }
+                    releasedRecorder = recorder
+                    model.showingSettings = true
+                    recorder.beginRecording()
+                    try check(recorder.isRecording && model.isRecordingShortcut, "settings recorder starts")
+                    try check(model.onRecordedActiveShortcut != nil, "settings recorder owns active-key callback")
+                    view.popoverDidClose(
+                        Notification(name: NSPopover.didCloseNotification, object: view.settingsPopover))
+                    try check(
+                        !recorder.isRecording && !model.isRecordingShortcut && !model.showingSettings,
+                        "popover close delegate cancels recording at cycle \(cycle)")
+                    try check(model.onRecordedActiveShortcut == nil, "closed settings releases active-key callback")
+                    guard let stack = (settings as? NSScrollView)?.documentView as? NSStackView,
+                        let pauseButton = stack.arrangedSubviews.compactMap({ $0 as? NSButton })
+                            .first(where: { $0.action == #selector(togglePause) })
+                    else { throw PreviewSupport.TestError.failed("legacy UI: settings pause action") }
+                    if cycle == 0 {
+                        pauseButton.performClick(nil)
+                        try check(
+                            SelfTestWait.until { model.isPaused && pauseButton.title == "继续记录" },
+                            "settings pause action updates its label to resume")
+                        pauseButton.performClick(nil)
+                        try check(
+                            SelfTestWait.until { !model.isPaused && pauseButton.title == "暂停记录" },
+                            "settings resume action updates its label to pause")
+                    }
+                    if cycle.isMultiple(of: 2) {
+                        recorder.beginRecording()
+                        try check(recorder.isRecording, "settings recorder restarts before removal")
+                    }
+                    settingsWindow.contentView = nil
+                    try check(
+                        !recorder.isRecording && !model.isRecordingShortcut && model.onRecordedActiveShortcut == nil,
+                        "detaching settings stops recording without a popover callback")
+                    model.setPanelVisible(false)
+                    model.prepareForPresentation()
+                    try check(!model.showingSettings, "reopening main panel leaves settings closed")
+                }
+                // Replacement can autorelease the old AppKit hierarchy. Drain that
+                // pool before checking its weak references, just as for the fixture.
+                try check(
+                    SelfTestWait.until { previousSettings == nil && previousRecorder == nil },
+                    "replacing settings releases previous controls at cycle \(cycle) "
+                        + "(settings=\(previousSettings == nil), recorder=\(previousRecorder == nil))")
+            }
         }
         // Check ordinary orderOut cleanup after the fixture scope and autorelease
         // pool end; delayed AppKit callbacks must release their owners as well.
         guard
             SelfTestWait.until({
                 releasedWindow == nil && releasedView == nil && releasedModel == nil
+                    && releasedSettings == nil && releasedRecorder == nil && releasedSettingsWindow == nil
             })
         else {
             throw PreviewSupport.TestError.failed(
@@ -390,8 +473,72 @@ final class LegacyHistoryView: NSView, NSTableViewDataSource, NSTableViewDelegat
             )
         }
         print(
-            "PASS: Catalina AppKit UI / native search / filters / selected paste routing / pin / delete / hidden-row release / reopen / window-view-model release"
+            "PASS: Catalina AppKit UI / search and actions / 12 settings replacement cycles / recording cancellation / pause labels / window-view-model release"
         )
+    }
+
+    /// Explicit, short GUI probe. Default stress tests only mount hidden views.
+    static func selfTestPopoverLifecycle() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "ClipboardDeck-live-popover-test-" + UUID().uuidString)
+        let suite = "ClipboardDeck-live-popover-test-" + UUID().uuidString
+        guard let defaults = UserDefaults(suiteName: suite) else {
+            throw PreviewSupport.TestError.failed("live popover: isolated settings")
+        }
+        defer {
+            defaults.removePersistentDomain(forName: suite)
+            try? FileManager.default.removeItem(at: root)
+        }
+        let model = AppModel(directory: root, isPreview: true, defaults: defaults)
+        let view = LegacyHistoryView(model: model)
+        let window = ClipboardPanel(
+            contentRect: view.frame, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        window.contentView = view
+        window.level = .floating
+        window.center()
+        defer {
+            view.shortcutRecorder?.cancelRecording()
+            view.settingsPopover.animates = false
+            view.settingsPopover.close()
+            window.orderOut(nil)
+            window.contentView = nil
+        }
+        window.orderFrontRegardless()
+        view.layoutSubtreeIfNeeded()
+        func check(_ condition: Bool, _ message: String) throws {
+            if !condition { throw PreviewSupport.TestError.failed("live popover: " + message) }
+        }
+        for cycle in 0..<3 {
+            view.openSettings()
+            try check(
+                SelfTestWait.until { view.settingsPopover.isShown && view.shortcutRecorder?.window != nil },
+                "settings opens at cycle \(cycle)")
+            view.shortcutRecorder?.beginRecording()
+            try check(model.isRecordingShortcut, "first recorder starts")
+            view.settingsPopover.performClose(nil)
+            // Reopen before draining AppKit's close animation callback.
+            view.openSettings()
+            guard let replacement = view.shortcutRecorder else {
+                throw PreviewSupport.TestError.failed("live popover: replacement recorder")
+            }
+            try check(SelfTestWait.until { replacement.window != nil }, "replacement settings attaches")
+            replacement.beginRecording()
+            RunLoop.main.run(until: Date().addingTimeInterval(0.35))
+            try check(
+                view.settingsPopover.isShown && model.showingSettings,
+                "old close callback does not dismiss reopened settings at cycle \(cycle)")
+            try check(
+                replacement.isRecording && model.isRecordingShortcut,
+                "old close callback does not cancel the replacement recorder at cycle \(cycle)")
+            view.settingsPopover.performClose(nil)
+            try check(
+                SelfTestWait.until {
+                    !view.settingsPopover.isShown && !model.showingSettings && !model.isRecordingShortcut
+                },
+                "ordinary close settles recording and presentation state")
+        }
+        print("PASS: 3 live AppKit popover rapid close/reopen cycles / replacement recording / final close cleanup")
     }
 }
 

@@ -94,6 +94,7 @@ enum AppModelSelfTests {
             "only a successful changed shortcut is persisted")
         try checkCustomShortcutSettings(directory: directory.appendingPathComponent("shortcut-settings"))
         try checkShortcutRecorder(model)
+        try checkShortcutRecorderInterleavings(model)
         try checkFilteringAndResources(model)
         try checkFormatFiltering(model)
         try checkBackgroundOperations(directory: directory.appendingPathComponent("background"), defaults: defaults)
@@ -168,6 +169,14 @@ enum AppModelSelfTests {
         restarted.activateHotkey()
         try check(restored == custom && restarted.isHotkeyAvailable, "startup registers the saved custom key")
         let savedCustom = defaults.data(forKey: HotkeyShortcut.storageKey)
+        let occupiedOnRestart = makeModel("occupied-on-restart")
+        occupiedOnRestart.onShortcutChange = { _ in .failure(.occupied) }
+        occupiedOnRestart.activateHotkey()
+        try check(
+            !occupiedOnRestart.isHotkeyAvailable && occupiedOnRestart.hotkeyWarning?.retainedShortcut == nil
+                && occupiedOnRestart.shortcut == custom
+                && defaults.data(forKey: HotkeyShortcut.storageKey) == savedCustom,
+            "a custom key occupied after restart remains saved without claiming an active fallback")
         restarted.setCustomHotkey(HotkeyShortcut(keyCode: UInt32(kVK_ANSI_K), modifiers: 0))
         try check(
             restarted.hotkeyWarning?.failure == .invalidShortcut && restarted.shortcut == custom
@@ -189,7 +198,137 @@ enum AppModelSelfTests {
         try check(
             makeModel("wrong-type").shortcut == HotkeyPresets.shortcuts[0],
             "incorrect preference types cannot prevent startup")
+        defaults.set(1, forKey: "hotkeyPreset")
+        let malformed = [
+            "null", "[]", "{}", "{\"keyCode\":true,\"modifiers\":256}",
+            "{\"keyCode\":-1,\"modifiers\":256}", "{\"keyCode\":4294967296,\"modifiers\":256}",
+            "{\"keyCode\":9.5,\"modifiers\":256}", "{\"keyCode\":9,\"modifiers\":\"256\"}",
+            "{\"keyCode\":9,\"modifiers\":0}", "{\"keyCode\":9,\"modifiers\":512}",
+            "{\"keyCode\":9,\"modifiers\":4294967295}", "{\"keyCode\":55,\"modifiers\":256}",
+        ]
+        for value in malformed {
+            let bytes = Data(value.utf8)
+            defaults.set(bytes, forKey: HotkeyShortcut.storageKey)
+            try check(
+                HotkeyShortcut.load(from: defaults) == HotkeyPresets.shortcuts[1]
+                    && defaults.data(forKey: HotkeyShortcut.storageKey) == bytes,
+                "malformed, overflowing or unsupported shortcut settings safely fall back without writes: \(value)")
+        }
+        defaults.set(savedCustom, forKey: HotkeyShortcut.storageKey)
+        try check(
+            HotkeyShortcut.load(from: defaults) == custom,
+            "valid custom settings take precedence over a stale legacy preset")
         print("PASS: custom shortcut migration / conflict rollback / retry / restart / corrupt preference fallback")
+    }
+
+    private static func checkShortcutRecorderInterleavings(_ model: AppModel) throws {
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 360, height: 100),
+            styleMask: [.titled], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        let recorder = ShortcutRecorderControl(frame: NSRect(x: 20, y: 20, width: 280, height: 30))
+        recorder.bind(to: model)
+        window.contentView?.addSubview(recorder)
+        defer { recorder.cancelRecording(); model.onShortcutChange = nil; window.close() }
+        func event(_ type: NSEvent.EventType, repeatKey: Bool = false) -> NSEvent {
+            NSEvent.keyEvent(
+                with: type, location: .zero, modifierFlags: [.control, .option], timestamp: 0,
+                windowNumber: window.windowNumber, context: nil, characters: "", charactersIgnoringModifiers: "",
+                isARepeat: repeatKey, keyCode: UInt16(kVK_F12))!
+        }
+        func exitKey(_ code: Int) -> NSEvent {
+            NSEvent.keyEvent(
+                with: .keyDown, location: .zero, modifierFlags: [], timestamp: 0,
+                windowNumber: window.windowNumber, context: nil, characters: "", charactersIgnoringModifiers: "",
+                isARepeat: false, keyCode: UInt16(code))!
+        }
+        let candidate = HotkeyShortcut(keyCode: UInt32(kVK_F12), modifiers: UInt32(controlKey | optionKey))
+        var attempts: [HotkeyShortcut] = []
+        var conflict = true
+        model.onShortcutChange = { value in
+            attempts.append(value)
+            return conflict ? .failure(.occupied) : .success(())
+        }
+        let original = model.shortcut
+        recorder.beginRecording()
+        recorder.capture(event(.keyDown))
+        try check(
+            model.handleHotkeyWhileRecording() && recorder.isRecording && attempts.isEmpty,
+            "a Carbon callback for the old shortcut cannot overwrite the first pending candidate")
+        recorder.capture(event(.keyUp))
+        try check(
+            attempts == [candidate] && model.shortcut == original && recorder.shortcut == original
+                && model.hotkeyWarning?.shortcut == candidate && !model.isRecordingShortcut,
+            "conflicting recorded candidate leaves the old displayed and active shortcut intact")
+        let warningID = model.hotkeyWarning?.id
+        let cancellations: [(String, () -> Void)] = [
+            ("Escape", { recorder.capture(exitKey(kVK_Escape)) }),
+            ("Tab", { recorder.capture(exitKey(kVK_Tab)) }),
+            ("focus loss", { window.makeFirstResponder(nil) }),
+            (
+                "window deactivation",
+                {
+                    NotificationCenter.default.post(name: NSWindow.didResignKeyNotification, object: window)
+                }
+            ),
+            (
+                "application deactivation",
+                {
+                    NotificationCenter.default.post(name: NSApplication.didResignActiveNotification, object: nil)
+                }
+            ),
+            (
+                "window close",
+                {
+                    NotificationCenter.default.post(name: NSWindow.willCloseNotification, object: window)
+                }
+            ),
+            ("view removal", { recorder.removeFromSuperview() }),
+        ]
+        for (reason, cancel) in cancellations {
+            if recorder.superview == nil { window.contentView?.addSubview(recorder) }
+            recorder.beginRecording()
+            recorder.capture(event(.keyDown))
+            cancel()
+            try check(
+                !recorder.isRecording && !model.isRecordingShortcut && model.onRecordedActiveShortcut == nil,
+                "\(reason) removes recording state and active-key callback with a pending candidate")
+            try check(
+                !recorder.capture(event(.keyUp)) && attempts == [candidate]
+                    && model.shortcut == original && model.hotkeyWarning?.id == warningID,
+                "late release after \(reason) cannot save a cancelled candidate or erase its conflict warning")
+        }
+        window.contentView?.addSubview(recorder)
+        recorder.beginRecording()
+        recorder.capture(event(.keyUp))
+        recorder.capture(event(.keyDown, repeatKey: true))
+        try check(
+            recorder.isRecording && attempts == [candidate],
+            "a previous session's late release or repeat cannot become a new recording")
+        conflict = false
+        recorder.capture(event(.keyDown))
+        recorder.capture(event(.keyUp))
+        try check(
+            attempts == [candidate, candidate] && model.shortcut == candidate
+                && model.hotkeyWarning == nil && !model.isRecordingShortcut,
+            "a fresh candidate after cancellation can be registered once and clears the earlier warning")
+        weak var releasedRecorder: ShortcutRecorderControl?
+        autoreleasepool {
+            let temporary = ShortcutRecorderControl(frame: .zero)
+            releasedRecorder = temporary
+            temporary.bind(to: model)
+            window.contentView?.addSubview(temporary)
+            temporary.beginRecording()
+            temporary.capture(event(.keyDown))
+            window.makeFirstResponder(nil)
+            temporary.removeFromSuperview()
+        }
+        try check(
+            releasedRecorder == nil && !model.isRecordingShortcut && model.onRecordedActiveShortcut == nil,
+            "cancelled recorder is not retained by its model callback, event monitor or focus observers")
+        print(
+            "PASS: pending candidate / Carbon interleave / conflict / 7 cancellation paths / late release / recorder lifetime"
+        )
     }
 
     private static func checkShortcutRecorder(_ model: AppModel) throws {

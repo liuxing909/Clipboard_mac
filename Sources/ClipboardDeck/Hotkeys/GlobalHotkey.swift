@@ -143,22 +143,35 @@ final class GlobalHotkey {
 /// No timer or background polling is needed: Carbon supplies both press and release.
 final class HotkeyEventRouter {
     private var heldID: EventHotKeyID?
+    private var stateRevision: UInt64 = 0
 
     func receive(_ id: EventHotKeyID, kind: UInt32, press: (EventHotKeyID) -> Bool) -> Bool {
         let isHeld = heldID?.signature == id.signature && heldID?.id == id.id
         if kind == UInt32(kEventHotKeyReleased) {
-            if isHeld { heldID = nil }
+            if isHeld { setHeld(nil) }
             return isHeld
         }
         guard kind == UInt32(kEventHotKeyPressed) else { return false }
         if isHeld { return true }
-        guard press(id) else { return false }
-        heldID = id
-        return true
+        // AppKit callbacks may run a nested event loop, release a key, or cancel a registration.
+        // Mark this press before calling out so reentrant repeats are already suppressed.
+        let previous = heldID
+        setHeld(id)
+        let revision = stateRevision
+        let handled = press(id)
+        // Rejected foreign events must preserve an earlier held key, while a nested callback's
+        // release/new registration must never be overwritten on return from this callback.
+        if !handled, stateRevision == revision { setHeld(previous) }
+        return handled
     }
 
     func cancel(_ id: EventHotKeyID) {
-        if heldID?.signature == id.signature && heldID?.id == id.id { heldID = nil }
+        if heldID?.signature == id.signature && heldID?.id == id.id { setHeld(nil) }
+    }
+
+    private func setHeld(_ id: EventHotKeyID?) {
+        heldID = id
+        stateRevision &+= 1
     }
 }
 

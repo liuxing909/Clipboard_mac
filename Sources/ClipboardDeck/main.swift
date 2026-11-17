@@ -30,6 +30,8 @@ MainActor.assumeIsolated {
                         + StressTestSupport.Suite.allCases.map(\.rawValue).joined(separator: "|") + "]")
             }
             try StressTestSupport.run(rounds: rounds, suite: suite)
+        } else if arguments.contains("--self-test-ui-live") {
+            try LegacyHistoryView.selfTestPopoverLifecycle()
         } else if arguments.contains("--self-test") {
             try PreviewSupport.selfTest()
         } else if arguments.contains("--self-test-formats") {

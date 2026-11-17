@@ -250,7 +250,7 @@ struct HistoryPanelView: View {
                     Text(
                         "v"
                             + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
-                                ?? "0.1.9")
+                                ?? "0.1.10")
                     )
                     .font(.caption).foregroundStyle(.secondary)
                 }
@@ -262,7 +262,7 @@ struct HistoryPanelView: View {
                     "快捷键预设",
                     selection: Binding(get: { model.hotkeyPreset }, set: { if $0 >= 0 { model.setHotkey($0) } })
                 ) {
-                    Text("自定义").tag(-1)
+                    Text("自定义").tag(-1).disabled(true)
                     Text("⌃⌥V（Control + Option + V）").tag(0)
                     Text("⌥V（Option + V）").tag(1)
                     Text("⌃⇧V（Control + Shift + V）").tag(2)

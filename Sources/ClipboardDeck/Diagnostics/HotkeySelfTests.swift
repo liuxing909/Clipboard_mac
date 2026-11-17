@@ -56,10 +56,98 @@ enum HotkeySelfTests {
         try checkSystemShortcutFilter()
         try checkCustomShortcuts()
         try checkHeldKeyRouting()
+        try checkReentrantRouting()
+        try checkRegistrationBoundaries()
         try checkRepeatedReplacement()
         print(
             "PASS: fake hotkey registration / conflict rollback / 2000 replacement attempts / stale event routing / invalid preset / cleanup"
         )
+    }
+
+    private static func checkReentrantRouting() throws {
+        let key = EventHotKeyID(signature: 0x43445041, id: 1)
+        let next = EventHotKeyID(signature: key.signature, id: 2)
+        let down = UInt32(kEventHotKeyPressed), up = UInt32(kEventHotKeyReleased)
+        let router = HotkeyEventRouter()
+        var presses = 0
+        func recursivePress(_ id: EventHotKeyID) -> Bool {
+            presses += 1
+            if presses == 1 { _ = router.receive(id, kind: down, press: recursivePress) }
+            return true
+        }
+        _ = router.receive(key, kind: down, press: recursivePress)
+        try check(presses == 1, "a nested event loop cannot deliver the same held press twice")
+        router.cancel(key)
+        for releaseInsideCallback in [false, true] {
+            _ = router.receive(key, kind: down) { id in
+                if releaseInsideCallback { _ = router.receive(id, kind: up) { _ in false } } else { router.cancel(id) }
+                return true
+            }
+            var delivered = false
+            _ = router.receive(key, kind: down) { _ in
+                delivered = true; return true
+            }
+            try check(delivered, "callback cancellation or nested release cannot resurrect a held key")
+            router.cancel(key)
+        }
+        _ = router.receive(key, kind: down) { _ in
+            _ = router.receive(next, kind: down) { _ in true }
+            return false
+        }
+        var nestedRepeated = false
+        _ = router.receive(next, kind: down) { _ in
+            nestedRepeated = true; return true
+        }
+        try check(!nestedRepeated, "a rejected outer callback cannot clear a newer nested held key")
+        _ = router.receive(key, kind: down) { _ in false }
+        _ = router.receive(next, kind: down) { _ in
+            nestedRepeated = true; return true
+        }
+        try check(!nestedRepeated, "a rejected foreign press preserves the already held registration")
+        try check(
+            !router.receive(next, kind: UInt32(kEventRawKeyRepeat)) { _ in true },
+            "unrelated event kinds never change hotkey state")
+    }
+
+    private static func checkRegistrationBoundaries() throws {
+        let backend = FakeBackend()
+        var hotkey: GlobalHotkey? = GlobalHotkey(backend: backend)
+        weak var releasedHotkey: GlobalHotkey?
+        releasedHotkey = hotkey
+        defer { backend.onRegister = nil; backend.onCancel = nil }
+        try check(succeeded(hotkey?.register(preset: 0)), "boundary test initial registration")
+        let old = backend.requests[0]
+        var oldLiveWhileRegistering = false, candidatePrematurelyLive = false
+        backend.onRegister = { candidate in
+            oldLiveWhileRegistering = backend.send(old)
+            candidatePrematurelyLive = backend.send(candidate)
+        }
+        var cancelledKeyStillLive = false, replacementLiveAtCancellation = false
+        backend.onCancel = { cancelled in
+            cancelledKeyStillLive = backend.send(cancelled)
+            if let candidate = backend.requests.last { replacementLiveAtCancellation = backend.send(candidate) }
+        }
+        try check(succeeded(hotkey?.register(preset: 1)), "boundary replacement registers")
+        try check(
+            oldLiveWhileRegistering && !candidatePrematurelyLive && !cancelledKeyStillLive
+                && replacementLiveAtCancellation,
+            "registration has no gap and stale callbacks cannot route during old-key cancellation")
+        // Test callbacks must not retain their fake backend beyond this scope.
+        backend.onRegister = nil
+        backend.onCancel = nil
+        hotkey = nil
+        try check(
+            releasedHotkey == nil && backend.removeCount == 1 && backend.cancelledIDs.count == 2,
+            "handler callback and registration cancellation do not retain the owner")
+        var cancellations = 0
+        var registration: HotkeyRegistration?
+        registration = HotkeyRegistration {
+            cancellations += 1; registration?.cancel()
+        }
+        registration?.cancel()
+        registration?.cancel()
+        registration = nil
+        try check(cancellations == 1, "reentrant cancel plus explicit cancel plus deinit release a resource once")
     }
 
     private static func checkHeldKeyRouting() throws {
@@ -207,11 +295,19 @@ enum HotkeySelfTests {
             "disabled, malformed and unrelated system shortcuts are not false conflicts")
     }
 
-    /// Explicit integration probe: registers a rare chord, never emits key events.
+    /// Explicit integration probe: registers a rare chord, never sends global input.
     /// Both registrations and the handler are released even if an assertion fails.
     static func runSystemRegistration() throws {
         let backend = CarbonHotkeyBackend()
-        guard backend.installHandler({ _ in true }) else { throw Failure.failed("native hotkey handler") }
+        var activeNativeID: UInt32? = 1
+        var nativePresses = 0
+        guard
+            backend.installHandler({ id in
+                guard id.signature == 0x43445453, id.id == activeNativeID else { return false }
+                nativePresses += 1
+                return true
+            })
+        else { throw Failure.failed("native hotkey handler") }
         defer { backend.removeHandler() }
         let flags = UInt32(controlKey | optionKey | shiftKey | cmdKey)
         let key = UInt32(kVK_F20)
@@ -222,6 +318,11 @@ enum HotkeySelfTests {
         case .failure(let error): throw Failure.failed("native test chord unavailable: \(error)")
         }
         defer { first.cancel() }
+        for _ in 0..<25 { try sendNativeHotkey(firstID, kind: UInt32(kEventHotKeyPressed)) }
+        try check(nativePresses == 1, "native event handler suppresses repeated Pressed events")
+        try sendNativeHotkey(firstID, kind: UInt32(kEventHotKeyReleased))
+        try sendNativeHotkey(firstID, kind: UInt32(kEventHotKeyPressed))
+        try check(nativePresses == 2, "native handler receives Released and accepts the next physical press")
         let conflict = backend.register(
             keyCode: key, modifiers: flags,
             id: EventHotKeyID(signature: firstID.signature, id: 2))
@@ -233,16 +334,44 @@ enum HotkeySelfTests {
         case .failure(let error): throw Failure.failed("native conflict misclassified: \(error)")
         }
         first.cancel()
+        activeNativeID = nil
+        try sendNativeHotkey(firstID, kind: UInt32(kEventHotKeyPressed))
+        try check(nativePresses == 2, "cancelled native registration cannot invoke its retired callback")
+        let retryID = EventHotKeyID(signature: firstID.signature, id: 3)
         switch backend.register(
             keyCode: key, modifiers: flags,
-            id: EventHotKeyID(signature: firstID.signature, id: 3))
+            id: retryID)
         {
-        case .success(let retry): retry.cancel()
+        case .success(let retry):
+            defer { retry.cancel() }
+            activeNativeID = retryID.id
+            try sendNativeHotkey(retryID, kind: UInt32(kEventHotKeyPressed))
+            try sendNativeHotkey(firstID, kind: UInt32(kEventHotKeyReleased))
+            try sendNativeHotkey(retryID, kind: UInt32(kEventHotKeyPressed))
+            try check(nativePresses == 3, "late old release cannot unblock a held replacement key")
+            try sendNativeHotkey(retryID, kind: UInt32(kEventHotKeyReleased))
+            try sendNativeHotkey(retryID, kind: UInt32(kEventHotKeyPressed))
+            try check(nativePresses == 4, "replacement key routes again after its own native release")
         case .failure(let error): throw Failure.failed("native retry after release: \(error)")
         }
         print(
-            "PASS: native Carbon exclusive registration / actual duplicate conflict / release and retry; no key events sent"
+            "PASS: native Carbon exclusive registration / duplicate conflict / local Pressed-Released dispatch / stale IDs / retry; no global input sent"
         )
+    }
+
+    /// Dispatch only to this test process's application target, never to the keyboard or other apps.
+    private static func sendNativeHotkey(_ id: EventHotKeyID, kind: UInt32) throws {
+        var event: EventRef?
+        let created = CreateEvent(nil, OSType(kEventClassKeyboard), kind, GetCurrentEventTime(), 0, &event)
+        guard created == noErr, let event else { throw Failure.failed("create local Carbon test event: \(created)") }
+        defer { ReleaseEvent(event) }
+        var value = id
+        let assigned = SetEventParameter(
+            event, EventParamName(kEventParamDirectObject),
+            EventParamType(typeEventHotKeyID), MemoryLayout<EventHotKeyID>.size, &value)
+        guard assigned == noErr else { throw Failure.failed("set local Carbon test event ID: \(assigned)") }
+        let sent = SendEventToEventTarget(event, GetApplicationEventTarget())
+        try check(sent == noErr || sent == OSStatus(eventNotHandledErr), "local Carbon event dispatch status: \(sent)")
     }
 
     private static func check(_ passed: Bool, _ message: String) throws {
@@ -258,6 +387,8 @@ enum HotkeySelfTests {
         var shortcuts: [HotkeyShortcut] = []
         var cancelledIDs: [UInt32] = []
         var removeCount = 0
+        var onRegister: ((EventHotKeyID) -> Void)?
+        var onCancel: ((EventHotKeyID) -> Void)?
         private var receive: ((EventHotKeyID) -> Bool)?
 
         func installHandler(_ receive: @escaping (EventHotKeyID) -> Bool) -> Bool {
@@ -271,8 +402,13 @@ enum HotkeySelfTests {
         > {
             requests.append(id)
             shortcuts.append(HotkeyShortcut(keyCode: keyCode, modifiers: modifiers))
+            onRegister?(id)
             guard !shouldFailRegistration else { return .failure(.occupied) }
-            return .success(HotkeyRegistration { [weak self] in self?.cancelledIDs.append(id.id) })
+            return .success(
+                HotkeyRegistration { [weak self] in
+                    self?.cancelledIDs.append(id.id)
+                    self?.onCancel?(id)
+                })
         }
 
         func removeHandler() { removeCount += 1; receive = nil }

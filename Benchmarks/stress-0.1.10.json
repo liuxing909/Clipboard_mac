@@ -1,0 +1,1667 @@
+{
+  "verification_date": "2026-11-17",
+  "app_version": "0.1.10",
+  "source_tag": "v0.1.10",
+  "baseline_source_commit": "ba863abeb0e2fb5f46fe3954c68886663175b88b",
+  "architecture": "arm64",
+  "scope": "Synthetic data, named pasteboards, isolated settings and temporary history. Live popover probe uses its own windows. Carbon events target this test process only; no global input is sent.",
+  "limits": [
+    "Repeated deterministic inputs are not unique random cases. The old suite passing does not cover the newly reproduced interleavings.",
+    "Round-end and peak physical footprint describe a synthetic test process, not normal application usage or a hard memory cap. Expanded UI coverage makes old/new run times unsuitable for a performance comparison.",
+    "Zero leaks applies only to the listed instrumented runs; reachable caches and untested paths may remain.",
+    "macOS 15 and 10.15 hardware, physical mouse dragging and real Word/WPS/Pages application flows remain outside this local verification."
+  ],
+  "reproduced_fixes": [
+    {
+      "case": "Pending new shortcut followed by old Carbon shortcut",
+      "before": "New candidate was lost and old shortcut retained",
+      "after": "Pending candidate survives and commits on release"
+    },
+    {
+      "case": "Router callback reentry / cancel / release",
+      "before": "Reentry invoked callback twice; cancel/release could suppress the next press",
+      "after": "Reentry filtered; nested cancellation, release and replacement states retained"
+    },
+    {
+      "case": "Legacy settings pause button",
+      "before": "UI regression failed: settings pause action updates its label to resume",
+      "after": "Pause/resume label follows actual model state"
+    },
+    {
+      "case": "Custom preset placeholder",
+      "before": "Choosing the placeholder changed the displayed menu selection without changing the shortcut",
+      "after": "Read-only placeholder; separate recorder remains the edit control"
+    }
+  ],
+  "fixture_correction": "Settings replacement release assertion moved after each autoreleasepool drains. The same per-cycle nil assertions pass without clearing production references or extending the timeout.",
+  "core_tests": {
+    "passed": 38,
+    "storage_seeds": 8,
+    "mixed_storage_operations": 4000
+  },
+  "published_0_1_9_full": {
+    "app_version": "0.1.9",
+    "elapsed_seconds": 402.57254933333024,
+    "memory_metric": "task_vm_info.phys_footprint after each round; not a GUI memory limit or leak proof",
+    "os_version": "Version 26.3.2 (Build 25D2150)",
+    "rounds": 50,
+    "samples": [
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.32099662499968,
+        "malloc_allocated_bytes": 79691776,
+        "malloc_in_use_bytes": 15933584,
+        "malloc_live_blocks": 56773,
+        "physical_footprint_mib": 52.5167236328125,
+        "round": 1
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.14264508325141,
+        "malloc_allocated_bytes": 79691776,
+        "malloc_in_use_bytes": 19933952,
+        "malloc_live_blocks": 56055,
+        "physical_footprint_mib": 55.7979736328125,
+        "round": 2
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.099564583273605,
+        "malloc_allocated_bytes": 79691776,
+        "malloc_in_use_bytes": 19964544,
+        "malloc_live_blocks": 56224,
+        "physical_footprint_mib": 57.6573486328125,
+        "round": 3
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.104304249980487,
+        "malloc_allocated_bytes": 83886080,
+        "malloc_in_use_bytes": 19990704,
+        "malloc_live_blocks": 56356,
+        "physical_footprint_mib": 58.8135986328125,
+        "round": 4
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.088602749980055,
+        "malloc_allocated_bytes": 88080384,
+        "malloc_in_use_bytes": 20022128,
+        "malloc_live_blocks": 56530,
+        "physical_footprint_mib": 59.6417236328125,
+        "round": 5
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.153893958311528,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20047888,
+        "malloc_live_blocks": 56677,
+        "physical_footprint_mib": 60.5948486328125,
+        "round": 6
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.14294825005345,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20081136,
+        "malloc_live_blocks": 56828,
+        "physical_footprint_mib": 61.3760986328125,
+        "round": 7
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.116390208364464,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20098480,
+        "malloc_live_blocks": 56952,
+        "physical_footprint_mib": 62.5167236328125,
+        "round": 8
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.023401333368383,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20131248,
+        "malloc_live_blocks": 57129,
+        "physical_footprint_mib": 61.8448486328125,
+        "round": 9
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 7.8184060415951535,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20170160,
+        "malloc_live_blocks": 57329,
+        "physical_footprint_mib": 58.0167236328125,
+        "round": 10
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 7.765145041630603,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20171216,
+        "malloc_live_blocks": 57497,
+        "physical_footprint_mib": 57.7510986328125,
+        "round": 11
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 7.84588545828592,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20220592,
+        "malloc_live_blocks": 57658,
+        "physical_footprint_mib": 49.1260986328125,
+        "round": 12
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.14058937493246,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20231008,
+        "malloc_live_blocks": 57814,
+        "physical_footprint_mib": 54.5167236328125,
+        "round": 13
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.080934625002556,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20272048,
+        "malloc_live_blocks": 57978,
+        "physical_footprint_mib": 56.6885986328125,
+        "round": 14
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 7.765122583368793,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20293056,
+        "malloc_live_blocks": 58122,
+        "physical_footprint_mib": 54.0167236328125,
+        "round": 15
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.164543041610159,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20320880,
+        "malloc_live_blocks": 58290,
+        "physical_footprint_mib": 54.4385986328125,
+        "round": 16
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.114499541698024,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20350944,
+        "malloc_live_blocks": 58465,
+        "physical_footprint_mib": 56.7667236328125,
+        "round": 17
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.135667208232917,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20392336,
+        "malloc_live_blocks": 58656,
+        "physical_footprint_mib": 56.7042236328125,
+        "round": 18
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.134010125068016,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20418288,
+        "malloc_live_blocks": 58815,
+        "physical_footprint_mib": 48.1573486328125,
+        "round": 19
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.115372124942951,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20430528,
+        "malloc_live_blocks": 58961,
+        "physical_footprint_mib": 51.4698486328125,
+        "round": 20
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.029333416605368,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20474512,
+        "malloc_live_blocks": 59145,
+        "physical_footprint_mib": 53.2667236328125,
+        "round": 21
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.01384191669058,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20486336,
+        "malloc_live_blocks": 59279,
+        "physical_footprint_mib": 54.0167236328125,
+        "round": 22
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 7.989939291612245,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20493584,
+        "malloc_live_blocks": 59437,
+        "physical_footprint_mib": 53.2823486328125,
+        "round": 23
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.118446291657165,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20518144,
+        "malloc_live_blocks": 59599,
+        "physical_footprint_mib": 47.7042236328125,
+        "round": 24
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.127404500031844,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20535520,
+        "malloc_live_blocks": 59769,
+        "physical_footprint_mib": 53.8292236328125,
+        "round": 25
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.118954791687429,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20566240,
+        "malloc_live_blocks": 59943,
+        "physical_footprint_mib": 54.6260986328125,
+        "round": 26
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.130326583283022,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20576464,
+        "malloc_live_blocks": 60104,
+        "physical_footprint_mib": 53.6573486328125,
+        "round": 27
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.149817583383992,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20637680,
+        "malloc_live_blocks": 60257,
+        "physical_footprint_mib": 53.1573486328125,
+        "round": 28
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.102904541650787,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20675088,
+        "malloc_live_blocks": 60425,
+        "physical_footprint_mib": 53.5167236328125,
+        "round": 29
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.118469208362512,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20689232,
+        "malloc_live_blocks": 60581,
+        "physical_footprint_mib": 48.7198486328125,
+        "round": 30
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.146330583374947,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20710736,
+        "malloc_live_blocks": 60742,
+        "physical_footprint_mib": 49.9385986328125,
+        "round": 31
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.119712583371438,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20736176,
+        "malloc_live_blocks": 60919,
+        "physical_footprint_mib": 49.9854736328125,
+        "round": 32
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.12776270834729,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20778016,
+        "malloc_live_blocks": 61096,
+        "physical_footprint_mib": 50.3448486328125,
+        "round": 33
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.0041768749943,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20778640,
+        "malloc_live_blocks": 61234,
+        "physical_footprint_mib": 52.5635986328125,
+        "round": 34
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 7.912739375024103,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20806896,
+        "malloc_live_blocks": 61404,
+        "physical_footprint_mib": 51.3760986328125,
+        "round": 35
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.138168791658245,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20834256,
+        "malloc_live_blocks": 61578,
+        "physical_footprint_mib": 53.1104736328125,
+        "round": 36
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.096082583419047,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20847392,
+        "malloc_live_blocks": 61727,
+        "physical_footprint_mib": 52.5635986328125,
+        "round": 37
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.10216062492691,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20856048,
+        "malloc_live_blocks": 61893,
+        "physical_footprint_mib": 52.8760986328125,
+        "round": 38
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 7.84310599998571,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20895920,
+        "malloc_live_blocks": 62056,
+        "physical_footprint_mib": 46.5323486328125,
+        "round": 39
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 7.7768253749236465,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20928880,
+        "malloc_live_blocks": 62224,
+        "physical_footprint_mib": 54.4542236328125,
+        "round": 40
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 7.79655970830936,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20953504,
+        "malloc_live_blocks": 62366,
+        "physical_footprint_mib": 54.4385986328125,
+        "round": 41
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 7.822179000009783,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20976672,
+        "malloc_live_blocks": 62542,
+        "physical_footprint_mib": 52.2042236328125,
+        "round": 42
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 7.7657631249167025,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 20990576,
+        "malloc_live_blocks": 62690,
+        "physical_footprint_mib": 53.7979736328125,
+        "round": 43
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.044247249956243,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 21022384,
+        "malloc_live_blocks": 62870,
+        "physical_footprint_mib": 52.7823486328125,
+        "round": 44
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.152345124981366,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 21051008,
+        "malloc_live_blocks": 63051,
+        "physical_footprint_mib": 55.6729736328125,
+        "round": 45
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.096904375008307,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 21057792,
+        "malloc_live_blocks": 63204,
+        "physical_footprint_mib": 57.2354736328125,
+        "round": 46
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.073847958352417,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 21082592,
+        "malloc_live_blocks": 63375,
+        "physical_footprint_mib": 55.2510986328125,
+        "round": 47
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.110739666619338,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 21118544,
+        "malloc_live_blocks": 63544,
+        "physical_footprint_mib": 56.2823486328125,
+        "round": 48
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.127223416697234,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 21150464,
+        "malloc_live_blocks": 63714,
+        "physical_footprint_mib": 57.1573486328125,
+        "round": 49
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.138624208397232,
+        "malloc_allocated_bytes": 92274688,
+        "malloc_in_use_bytes": 21175792,
+        "malloc_live_blocks": 63859,
+        "physical_footprint_mib": 56.2042236328125,
+        "round": 50
+      }
+    ],
+    "scope": "repeated isolated self-tests in one process; synthetic content and private pasteboards",
+    "suite": "all",
+    "pass_groups": 1000,
+    "peak_physical_footprint_bytes": 223298784,
+    "peak_resident_set_bytes": 325140480
+  },
+  "fixed_full": {
+    "app_version": "0.1.10",
+    "elapsed_seconds": 178.56687008333392,
+    "memory_metric": "task_vm_info.phys_footprint after each round; not a GUI memory limit or leak proof",
+    "os_version": "Version 26.3.2 (Build 25D2150)",
+    "rounds": 20,
+    "samples": [
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 9.072536708321422,
+        "malloc_allocated_bytes": 96468992,
+        "malloc_in_use_bytes": 23758304,
+        "malloc_live_blocks": 65519,
+        "physical_footprint_mib": 62.516746520996094,
+        "round": 1
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.640372291672975,
+        "malloc_allocated_bytes": 109051904,
+        "malloc_in_use_bytes": 27709440,
+        "malloc_live_blocks": 64797,
+        "physical_footprint_mib": 67.92301940917969,
+        "round": 2
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.714462624979205,
+        "malloc_allocated_bytes": 109051904,
+        "malloc_in_use_bytes": 27784064,
+        "malloc_live_blocks": 65242,
+        "physical_footprint_mib": 69.64176940917969,
+        "round": 3
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.964646833366714,
+        "malloc_allocated_bytes": 113246208,
+        "malloc_in_use_bytes": 27849776,
+        "malloc_live_blocks": 65591,
+        "physical_footprint_mib": 71.54801940917969,
+        "round": 4
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.987183583318256,
+        "malloc_allocated_bytes": 113246208,
+        "malloc_in_use_bytes": 27854192,
+        "malloc_live_blocks": 65883,
+        "physical_footprint_mib": 70.93866729736328,
+        "round": 5
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.964673291658983,
+        "malloc_allocated_bytes": 113246208,
+        "malloc_in_use_bytes": 27922400,
+        "malloc_live_blocks": 66317,
+        "physical_footprint_mib": 72.84491729736328,
+        "round": 6
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.943085291655734,
+        "malloc_allocated_bytes": 113246208,
+        "malloc_in_use_bytes": 27973184,
+        "malloc_live_blocks": 66729,
+        "physical_footprint_mib": 72.84491729736328,
+        "round": 7
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.947173624997959,
+        "malloc_allocated_bytes": 113246208,
+        "malloc_in_use_bytes": 28005616,
+        "malloc_live_blocks": 67039,
+        "physical_footprint_mib": 73.82926940917969,
+        "round": 8
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.965022249962203,
+        "malloc_allocated_bytes": 113246208,
+        "malloc_in_use_bytes": 28065872,
+        "malloc_live_blocks": 67380,
+        "physical_footprint_mib": 72.15741729736328,
+        "round": 9
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.961191458394751,
+        "malloc_allocated_bytes": 113246208,
+        "malloc_in_use_bytes": 28109312,
+        "malloc_live_blocks": 67731,
+        "physical_footprint_mib": 71.84491729736328,
+        "round": 10
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.806484083412215,
+        "malloc_allocated_bytes": 113246208,
+        "malloc_in_use_bytes": 28166544,
+        "malloc_live_blocks": 68135,
+        "physical_footprint_mib": 71.90739440917969,
+        "round": 11
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 9.0319992499426,
+        "malloc_allocated_bytes": 113246208,
+        "malloc_in_use_bytes": 28215440,
+        "malloc_live_blocks": 68419,
+        "physical_footprint_mib": 63.37616729736328,
+        "round": 12
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.92711175000295,
+        "malloc_allocated_bytes": 113246208,
+        "malloc_in_use_bytes": 28248096,
+        "malloc_live_blocks": 68721,
+        "physical_footprint_mib": 66.90741729736328,
+        "round": 13
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 9.03148574999068,
+        "malloc_allocated_bytes": 113246208,
+        "malloc_in_use_bytes": 28297120,
+        "malloc_live_blocks": 69250,
+        "physical_footprint_mib": 67.53241729736328,
+        "round": 14
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.896121666766703,
+        "malloc_allocated_bytes": 113246208,
+        "malloc_in_use_bytes": 28336672,
+        "malloc_live_blocks": 69593,
+        "physical_footprint_mib": 68.31366729736328,
+        "round": 15
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.922837583348155,
+        "malloc_allocated_bytes": 113246208,
+        "malloc_in_use_bytes": 28355968,
+        "malloc_live_blocks": 69959,
+        "physical_footprint_mib": 67.14179229736328,
+        "round": 16
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.947339000063948,
+        "malloc_allocated_bytes": 113246208,
+        "malloc_in_use_bytes": 28413072,
+        "malloc_live_blocks": 70303,
+        "physical_footprint_mib": 67.71989440917969,
+        "round": 17
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.94035199994687,
+        "malloc_allocated_bytes": 113246208,
+        "malloc_in_use_bytes": 28473968,
+        "malloc_live_blocks": 70642,
+        "physical_footprint_mib": 68.78241729736328,
+        "round": 18
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.969602999975905,
+        "malloc_allocated_bytes": 113246208,
+        "malloc_in_use_bytes": 28525168,
+        "malloc_live_blocks": 71053,
+        "physical_footprint_mib": 63.40739440917969,
+        "round": 19
+      },
+      {
+        "appkit_window_count": 1,
+        "elapsed_seconds": 8.932084291707724,
+        "malloc_allocated_bytes": 113246208,
+        "malloc_in_use_bytes": 28576240,
+        "malloc_live_blocks": 71426,
+        "physical_footprint_mib": 65.53241729736328,
+        "round": 20
+      }
+    ],
+    "scope": "repeated isolated self-tests in one process; synthetic content and private pasteboards",
+    "suite": "all",
+    "pass_groups": 420,
+    "peak_physical_footprint_bytes": 236700992,
+    "peak_resident_set_bytes": 349995008
+  },
+  "fixed_hotkeys": {
+    "app_version": "development",
+    "elapsed_seconds": 5.4337183750467375,
+    "memory_metric": "task_vm_info.phys_footprint after each round; not a GUI memory limit or leak proof",
+    "os_version": "Version 26.3.2 (Build 25D2150)",
+    "rounds": 100,
+    "samples": [
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.0523939166450873,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 777280,
+        "malloc_live_blocks": 5417,
+        "physical_footprint_mib": 5.5474700927734375,
+        "round": 1
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05251316668000072,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 780272,
+        "malloc_live_blocks": 5420,
+        "physical_footprint_mib": 5.5787200927734375,
+        "round": 2
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05254733329638839,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 781168,
+        "malloc_live_blocks": 5421,
+        "physical_footprint_mib": 5.5787200927734375,
+        "round": 3
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05334266659338027,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 782080,
+        "malloc_live_blocks": 5422,
+        "physical_footprint_mib": 5.6255950927734375,
+        "round": 4
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05485941655933857,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 782976,
+        "malloc_live_blocks": 5423,
+        "physical_footprint_mib": 5.6568450927734375,
+        "round": 5
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.054052708321250975,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 783904,
+        "malloc_live_blocks": 5424,
+        "physical_footprint_mib": 5.703742980957031,
+        "round": 6
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05287033331114799,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 785104,
+        "malloc_live_blocks": 5428,
+        "physical_footprint_mib": 5.750617980957031,
+        "round": 7
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.052156208315864205,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 786000,
+        "malloc_live_blocks": 5429,
+        "physical_footprint_mib": 5.750617980957031,
+        "round": 8
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.052182041690684855,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 786896,
+        "malloc_live_blocks": 5430,
+        "physical_footprint_mib": 5.781867980957031,
+        "round": 9
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05146133329253644,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 787904,
+        "malloc_live_blocks": 5432,
+        "physical_footprint_mib": 5.781867980957031,
+        "round": 10
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05203070829156786,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 788448,
+        "malloc_live_blocks": 5429,
+        "physical_footprint_mib": 5.781867980957031,
+        "round": 11
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05200795840937644,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 789344,
+        "malloc_live_blocks": 5430,
+        "physical_footprint_mib": 5.781867980957031,
+        "round": 12
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05218341667205095,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 790240,
+        "malloc_live_blocks": 5431,
+        "physical_footprint_mib": 5.781867980957031,
+        "round": 13
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.0524959999602288,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 791136,
+        "malloc_live_blocks": 5432,
+        "physical_footprint_mib": 5.781867980957031,
+        "round": 14
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.052596625057049096,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 792032,
+        "malloc_live_blocks": 5433,
+        "physical_footprint_mib": 5.781867980957031,
+        "round": 15
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05264937493484467,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 792928,
+        "malloc_live_blocks": 5434,
+        "physical_footprint_mib": 5.781867980957031,
+        "round": 16
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05443658330477774,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 793824,
+        "malloc_live_blocks": 5435,
+        "physical_footprint_mib": 5.781867980957031,
+        "round": 17
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05295195837970823,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 794880,
+        "malloc_live_blocks": 5436,
+        "physical_footprint_mib": 5.781867980957031,
+        "round": 18
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05394691659603268,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 795776,
+        "malloc_live_blocks": 5437,
+        "physical_footprint_mib": 5.781867980957031,
+        "round": 19
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.053639208315871656,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 796672,
+        "malloc_live_blocks": 5438,
+        "physical_footprint_mib": 5.797492980957031,
+        "round": 20
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.0539342500269413,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 797568,
+        "malloc_live_blocks": 5439,
+        "physical_footprint_mib": 5.797492980957031,
+        "round": 21
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05328866664785892,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 798464,
+        "malloc_live_blocks": 5440,
+        "physical_footprint_mib": 5.797492980957031,
+        "round": 22
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05413487495388836,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 799360,
+        "malloc_live_blocks": 5441,
+        "physical_footprint_mib": 5.828742980957031,
+        "round": 23
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.0539455417310819,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 800256,
+        "malloc_live_blocks": 5442,
+        "physical_footprint_mib": 5.828742980957031,
+        "round": 24
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.0548837500391528,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 801152,
+        "malloc_live_blocks": 5443,
+        "physical_footprint_mib": 5.828742980957031,
+        "round": 25
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05421058333013207,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 802048,
+        "malloc_live_blocks": 5444,
+        "physical_footprint_mib": 5.828742980957031,
+        "round": 26
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.0547327499371022,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 803248,
+        "malloc_live_blocks": 5448,
+        "physical_footprint_mib": 5.828742980957031,
+        "round": 27
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05327712500002235,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 803840,
+        "malloc_live_blocks": 5446,
+        "physical_footprint_mib": 5.828742980957031,
+        "round": 28
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05506712500937283,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 804736,
+        "malloc_live_blocks": 5447,
+        "physical_footprint_mib": 5.828742980957031,
+        "round": 29
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.0534869582625106,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 805632,
+        "malloc_live_blocks": 5448,
+        "physical_footprint_mib": 5.828742980957031,
+        "round": 30
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05408887495286763,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 806528,
+        "malloc_live_blocks": 5449,
+        "physical_footprint_mib": 5.828742980957031,
+        "round": 31
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05347187502775341,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 807424,
+        "malloc_live_blocks": 5450,
+        "physical_footprint_mib": 5.828742980957031,
+        "round": 32
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05210645834449679,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 808320,
+        "malloc_live_blocks": 5451,
+        "physical_footprint_mib": 5.828742980957031,
+        "round": 33
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05230787501204759,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 809216,
+        "malloc_live_blocks": 5452,
+        "physical_footprint_mib": 5.828742980957031,
+        "round": 34
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.052495499956421554,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 810112,
+        "malloc_live_blocks": 5453,
+        "physical_footprint_mib": 5.828742980957031,
+        "round": 35
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05309758335351944,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 811008,
+        "malloc_live_blocks": 5454,
+        "physical_footprint_mib": 5.828742980957031,
+        "round": 36
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05354137497488409,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 811904,
+        "malloc_live_blocks": 5455,
+        "physical_footprint_mib": 5.828742980957031,
+        "round": 37
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.052968833362683654,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 813120,
+        "malloc_live_blocks": 5456,
+        "physical_footprint_mib": 5.844367980957031,
+        "round": 38
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05402895831502974,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 814016,
+        "malloc_live_blocks": 5457,
+        "physical_footprint_mib": 5.844367980957031,
+        "round": 39
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.054159416700713336,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 814912,
+        "malloc_live_blocks": 5458,
+        "physical_footprint_mib": 5.844367980957031,
+        "round": 40
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05387174990028143,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 815808,
+        "malloc_live_blocks": 5459,
+        "physical_footprint_mib": 5.844367980957031,
+        "round": 41
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05306691664736718,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 816704,
+        "malloc_live_blocks": 5460,
+        "physical_footprint_mib": 5.844367980957031,
+        "round": 42
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.0532036250224337,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 817600,
+        "malloc_live_blocks": 5461,
+        "physical_footprint_mib": 5.844367980957031,
+        "round": 43
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.0534471666906029,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 818496,
+        "malloc_live_blocks": 5462,
+        "physical_footprint_mib": 5.844367980957031,
+        "round": 44
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.053773458348587155,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 819392,
+        "malloc_live_blocks": 5463,
+        "physical_footprint_mib": 5.844367980957031,
+        "round": 45
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.054205833352170885,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 820288,
+        "malloc_live_blocks": 5464,
+        "physical_footprint_mib": 5.844367980957031,
+        "round": 46
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05417908332310617,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 821184,
+        "malloc_live_blocks": 5465,
+        "physical_footprint_mib": 5.844367980957031,
+        "round": 47
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.055116166709922254,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 822080,
+        "malloc_live_blocks": 5466,
+        "physical_footprint_mib": 5.844367980957031,
+        "round": 48
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.054685833281837404,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 822976,
+        "malloc_live_blocks": 5467,
+        "physical_footprint_mib": 5.844367980957031,
+        "round": 49
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05378529173322022,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 823872,
+        "malloc_live_blocks": 5468,
+        "physical_footprint_mib": 5.844367980957031,
+        "round": 50
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05344145838171244,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 824768,
+        "malloc_live_blocks": 5469,
+        "physical_footprint_mib": 5.844367980957031,
+        "round": 51
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.0548937083221972,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 825664,
+        "malloc_live_blocks": 5470,
+        "physical_footprint_mib": 5.844367980957031,
+        "round": 52
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05422608333174139,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 826560,
+        "malloc_live_blocks": 5471,
+        "physical_footprint_mib": 5.844367980957031,
+        "round": 53
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05235879169777036,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 827456,
+        "malloc_live_blocks": 5472,
+        "physical_footprint_mib": 5.844367980957031,
+        "round": 54
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05345070827752352,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 828352,
+        "malloc_live_blocks": 5473,
+        "physical_footprint_mib": 5.844367980957031,
+        "round": 55
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05563937500119209,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 829248,
+        "malloc_live_blocks": 5474,
+        "physical_footprint_mib": 5.859992980957031,
+        "round": 56
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05485770828090608,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 830144,
+        "malloc_live_blocks": 5475,
+        "physical_footprint_mib": 5.859992980957031,
+        "round": 57
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05459558335132897,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 831040,
+        "malloc_live_blocks": 5476,
+        "physical_footprint_mib": 5.859992980957031,
+        "round": 58
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.054209666675888,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 831936,
+        "malloc_live_blocks": 5477,
+        "physical_footprint_mib": 5.859992980957031,
+        "round": 59
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.054330458282493055,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 832832,
+        "malloc_live_blocks": 5478,
+        "physical_footprint_mib": 5.859992980957031,
+        "round": 60
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05440295836888254,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 833728,
+        "malloc_live_blocks": 5479,
+        "physical_footprint_mib": 5.859992980957031,
+        "round": 61
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.054918000008910894,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 834624,
+        "malloc_live_blocks": 5480,
+        "physical_footprint_mib": 5.859992980957031,
+        "round": 62
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05443870835006237,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 835520,
+        "malloc_live_blocks": 5481,
+        "physical_footprint_mib": 5.859992980957031,
+        "round": 63
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.055646999971941113,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 836416,
+        "malloc_live_blocks": 5482,
+        "physical_footprint_mib": 5.859992980957031,
+        "round": 64
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05432225007098168,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 837312,
+        "malloc_live_blocks": 5483,
+        "physical_footprint_mib": 5.859992980957031,
+        "round": 65
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05515237501822412,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 838208,
+        "malloc_live_blocks": 5484,
+        "physical_footprint_mib": 5.859992980957031,
+        "round": 66
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.052994916681200266,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 839104,
+        "malloc_live_blocks": 5485,
+        "physical_footprint_mib": 5.859992980957031,
+        "round": 67
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05378929164726287,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 840000,
+        "malloc_live_blocks": 5486,
+        "physical_footprint_mib": 5.859992980957031,
+        "round": 68
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05425154173281044,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 840896,
+        "malloc_live_blocks": 5487,
+        "physical_footprint_mib": 5.859992980957031,
+        "round": 69
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05529358342755586,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 841792,
+        "malloc_live_blocks": 5488,
+        "physical_footprint_mib": 5.859992980957031,
+        "round": 70
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05527312506455928,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 842688,
+        "malloc_live_blocks": 5489,
+        "physical_footprint_mib": 5.859992980957031,
+        "round": 71
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05506200005766004,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 843584,
+        "malloc_live_blocks": 5490,
+        "physical_footprint_mib": 5.859992980957031,
+        "round": 72
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05531612492632121,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 844480,
+        "malloc_live_blocks": 5491,
+        "physical_footprint_mib": 5.859992980957031,
+        "round": 73
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.056085083400830626,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 845376,
+        "malloc_live_blocks": 5492,
+        "physical_footprint_mib": 5.875617980957031,
+        "round": 74
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.055072874994948506,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 846272,
+        "malloc_live_blocks": 5493,
+        "physical_footprint_mib": 5.875617980957031,
+        "round": 75
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05563045828603208,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 847168,
+        "malloc_live_blocks": 5494,
+        "physical_footprint_mib": 5.875617980957031,
+        "round": 76
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.055063833366148174,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 848064,
+        "malloc_live_blocks": 5495,
+        "physical_footprint_mib": 5.875617980957031,
+        "round": 77
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05587754165753722,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 849600,
+        "malloc_live_blocks": 5496,
+        "physical_footprint_mib": 5.875617980957031,
+        "round": 78
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05574787489604205,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 850496,
+        "malloc_live_blocks": 5497,
+        "physical_footprint_mib": 5.875617980957031,
+        "round": 79
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05516770831309259,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 851392,
+        "malloc_live_blocks": 5498,
+        "physical_footprint_mib": 5.875617980957031,
+        "round": 80
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.055322083295322955,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 852288,
+        "malloc_live_blocks": 5499,
+        "physical_footprint_mib": 5.875617980957031,
+        "round": 81
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05548266670666635,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 853184,
+        "malloc_live_blocks": 5500,
+        "physical_footprint_mib": 5.875617980957031,
+        "round": 82
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05574966664426029,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 854080,
+        "malloc_live_blocks": 5501,
+        "physical_footprint_mib": 5.875617980957031,
+        "round": 83
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05496845836751163,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 854976,
+        "malloc_live_blocks": 5502,
+        "physical_footprint_mib": 5.875617980957031,
+        "round": 84
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05387729161884636,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 855872,
+        "malloc_live_blocks": 5503,
+        "physical_footprint_mib": 5.875617980957031,
+        "round": 85
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.054804666666314006,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 856768,
+        "malloc_live_blocks": 5504,
+        "physical_footprint_mib": 5.875617980957031,
+        "round": 86
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05601241660770029,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 857664,
+        "malloc_live_blocks": 5505,
+        "physical_footprint_mib": 5.875617980957031,
+        "round": 87
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05558091669809073,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 858560,
+        "malloc_live_blocks": 5506,
+        "physical_footprint_mib": 5.875617980957031,
+        "round": 88
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05728504166472703,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 859456,
+        "malloc_live_blocks": 5507,
+        "physical_footprint_mib": 5.875617980957031,
+        "round": 89
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05559470830485225,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 860352,
+        "malloc_live_blocks": 5508,
+        "physical_footprint_mib": 5.875617980957031,
+        "round": 90
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05619762500282377,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 861248,
+        "malloc_live_blocks": 5509,
+        "physical_footprint_mib": 5.875617980957031,
+        "round": 91
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.0555623333202675,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 862144,
+        "malloc_live_blocks": 5510,
+        "physical_footprint_mib": 5.891242980957031,
+        "round": 92
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05545287497807294,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 863040,
+        "malloc_live_blocks": 5511,
+        "physical_footprint_mib": 5.891242980957031,
+        "round": 93
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.055731541593559086,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 863936,
+        "malloc_live_blocks": 5512,
+        "physical_footprint_mib": 5.891242980957031,
+        "round": 94
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.056704708258621395,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 864832,
+        "malloc_live_blocks": 5513,
+        "physical_footprint_mib": 5.891242980957031,
+        "round": 95
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05535074998624623,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 865728,
+        "malloc_live_blocks": 5514,
+        "physical_footprint_mib": 5.891242980957031,
+        "round": 96
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05356887506786734,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 866624,
+        "malloc_live_blocks": 5515,
+        "physical_footprint_mib": 5.891242980957031,
+        "round": 97
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05465958337299526,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 867520,
+        "malloc_live_blocks": 5516,
+        "physical_footprint_mib": 5.891242980957031,
+        "round": 98
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.05567483336199075,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 868416,
+        "malloc_live_blocks": 5517,
+        "physical_footprint_mib": 5.891242980957031,
+        "round": 99
+      },
+      {
+        "appkit_window_count": 0,
+        "elapsed_seconds": 0.055829208344221115,
+        "malloc_allocated_bytes": 29360128,
+        "malloc_in_use_bytes": 869312,
+        "malloc_live_blocks": 5518,
+        "physical_footprint_mib": 5.891242980957031,
+        "round": 100
+      }
+    ],
+    "scope": "repeated isolated self-tests in one process; synthetic content and private pasteboards",
+    "suite": "hotkeys",
+    "pass_groups": 100
+  },
+  "native_carbon": {
+    "passed": true,
+    "local_pressed_release_dispatch": true,
+    "global_input_sent": false
+  },
+  "live_popover": {
+    "passed": true,
+    "rapid_close_reopen_cycles": 3
+  },
+  "leaks": {
+    "published_model": {
+      "rounds": 3,
+      "exit_code": 0,
+      "leaks": 0,
+      "leaked_bytes": 0,
+      "malloc_stack_logging": true
+    },
+    "published_ui": {
+      "rounds": 5,
+      "exit_code": 0,
+      "leaks": 0,
+      "leaked_bytes": 0,
+      "malloc_stack_logging": true
+    },
+    "fixed_ui": {
+      "rounds": 3,
+      "exit_code": 0,
+      "leaks": 0,
+      "leaked_bytes": 0,
+      "malloc_stack_logging": true
+    },
+    "fixed_model": {
+      "rounds": 3,
+      "exit_code": 0,
+      "leaks": 0,
+      "leaked_bytes": 0,
+      "malloc_stack_logging": true
+    }
+  },
+  "package": {
+    "filename": "ClipboardDeck-0.1.10-universal.dmg",
+    "sha256": "44e68583eff0e8ce692edc2661ce1934fff96176d264299afc551829091d4706",
+    "size_bytes": 2731643,
+    "architectures": [
+      "x86_64",
+      "arm64"
+    ],
+    "minimum_os": {
+      "x86_64": "10.15",
+      "arm64": "11.0"
+    },
+    "mounted_binary_matches_tested_binary": true,
+    "ad_hoc_signature_verified": true,
+    "notarized": false
+  }
+}
