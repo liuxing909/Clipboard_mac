@@ -15,7 +15,9 @@ concurrency:
 
 jobs:
   build-and-test:
-    runs-on: macos-15
+    # macos-15 uses the ARM pool; use Intel to avoid its runner capacity backlog.
+    # build.sh still builds and validates the universal Intel + Apple Silicon app.
+    runs-on: macos-15-intel
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
