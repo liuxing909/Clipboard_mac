@@ -26,11 +26,30 @@ enum FlatRTFDReader {
         var children: [String: Data] = [:]
         var directoryInfo: Data?
         for (name, size) in zip(names, sizes) {
+            let recordOffset = cursor.offset
             guard let block = cursor.bytes(count: size) else { return nil }
             var record = Cursor(data: block)
-            guard record.uint32() == 1, let size = record.uint32(), size == record.remaining,
-                let contents = record.bytes(count: size)
-            else { return nil }
+            guard record.uint32() == 1, let length = record.uint32() else { return nil }
+            let contentLength: Int
+            if length == 0x8000_0000 {
+                // Foundation also emits page-aligned data records: the marker is
+                // followed by content length, zero-padding length, padding, bytes.
+                // Recognize the observed 4 KiB / 16 KiB layouts on either host;
+                // never allocate from these untrusted lengths or deserialize them.
+                guard let length = record.uint32(), let padding = record.uint32(),
+                    padding < 16_384, padding <= record.remaining,
+                    length == record.remaining - padding
+                else { return nil }
+                let start = recordOffset + record.offset
+                guard [4_096, 16_384].contains(where: { padding == ($0 - start % $0) % $0 }),
+                    record.skipZeroes(count: padding)
+                else { return nil }
+                contentLength = length
+            } else {
+                guard length == record.remaining else { return nil }
+                contentLength = length
+            }
+            guard let contents = record.bytes(count: contentLength), record.remaining == 0 else { return nil }
             if name == "." { directoryInfo = contents } else { children[name] = contents }
         }
         guard cursor.remaining == 0, let directoryInfo else { return nil }
@@ -86,6 +105,16 @@ enum FlatRTFDReader {
             let start = data.startIndex + offset
             offset += count
             return data.subdata(in: start..<(start + count))
+        }
+
+        mutating func skipZeroes(count: Int) -> Bool {
+            guard count >= 0, count <= remaining,
+                data.withUnsafeBytes({ (bytes: UnsafeRawBufferPointer) in
+                    bytes[offset..<(offset + count)].allSatisfy { $0 == 0 }
+                })
+            else { return false }
+            offset += count
+            return true
         }
 
         mutating func string() -> String? {

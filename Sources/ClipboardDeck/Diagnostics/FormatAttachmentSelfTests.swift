@@ -69,6 +69,7 @@ enum FormatAttachmentSelfTests {
         print(
             "FORMAT CASE: RTFD 33 attachments rejected; capture fallback and failed-write clipboard preservation verified"
         )
+        try AlignedRTFDSelfTests.run()
         print(
             "PASS: RTFD attachment formats / native ordered import / 32-attachment boundary / 33-attachment rejection / plain fallback / failed-write preservation"
         )
